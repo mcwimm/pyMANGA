@@ -21,6 +21,9 @@ class MangaProject:
         self.iniPopulation()
         self.iniTreeTimeLoop()
 
+    def setProjectArguments(self, args):
+        self.args = args
+
     def getBelowgroundCompetition(self):
         return self.belowground_competition
 
