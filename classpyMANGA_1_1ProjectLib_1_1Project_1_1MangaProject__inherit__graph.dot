@@ -1,0 +1,8 @@
+digraph "pyMANGA.ProjectLib.Project.MangaProject"
+{
+  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
+  node [fontname="Helvetica",fontsize="10",shape=record];
+  Node1 [label="pyMANGA.ProjectLib.Project.\lMangaProject",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled", fontcolor="black"];
+  Node1 -> Node2 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node2 [label="pyMANGA.ProjectLib.XMLto\lProject.XMLtoProject",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classpyMANGA_1_1ProjectLib_1_1XMLtoProject_1_1XMLtoProject.html",tooltip="Creates MangaProject defined in corresponding xml-file. "];
+}

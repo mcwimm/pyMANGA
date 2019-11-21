@@ -1,0 +1,7 @@
+digraph "Graphical Class Hierarchy"
+{
+  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
+  node [fontname="Helvetica",fontsize="10",shape=record];
+  rankdir="LR";
+  Node1 [label="pyMANGA.TimeLoopLib.Simple\lTimeLoop.SimpleLoop.Loop",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classpyMANGA_1_1TimeLoopLib_1_1SimpleTimeLoop_1_1SimpleLoop_1_1Loop.html"];
+}
