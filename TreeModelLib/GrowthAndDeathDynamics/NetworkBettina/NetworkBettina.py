@@ -32,7 +32,8 @@ class NetworkBettina(SimpleBettina):
         network['potential_partner'] = self.potential_partner
         network['partner'] = self.partner
         tree.setNetwork(network)
-        if (self.survive == 1):
+        # network end
+        if self.survive == 1:
             tree.setSurvival(1)
         else:
             tree.setSurvival(0)

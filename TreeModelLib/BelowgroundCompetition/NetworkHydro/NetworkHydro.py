@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-@date: 2018-Today
-@author: jasper.bathmann@ufz.de
+@date: 2021-Today
+@author: marie-christin.wimmler@tu-dresden.de
 """
+
 import numpy as np
-import math
-from TreeModelLib.BelowgroundCompetition import BelowgroundCompetition
+from TreeModelLib.BelowgroundCompetition.Network import Network
 
 
-class SimpleHydro(BelowgroundCompetition):
+class NetworkHydro(Network):
     ## Simple approach to reduce water availability due to osmotic potential.
     #  Processes are gradient flow, salinisation by plant transpiration,
     #  dilution by tides and horizontal mixing (diffusion).\n
@@ -20,71 +20,170 @@ class SimpleHydro(BelowgroundCompetition):
         print("Initiate belowground competition of type " + case + ".")
         self.makeGrid(args)
 
+
+    ## This functions prepares the computation of water uptake
+    #  by porewater salinity. Only tree height and leaf
+    #  water potential is needed\n
+    #  @param t_ini - initial time for next timestep \n
+    #  @param t_end - end time for next timestep
+    def prepareNextTimeStep(self, t_ini, t_end):
+        self.trees = []
+        self._xe = []
+        self._ye = []
+        self._tree_name = np.empty(0)
+        self._partner_names = []
+        self._partner_indices = []
+        self._potential_partner = []
+        self._rgf_counter = []
+
+        self.graph_dict = {}
+        self._gIDs = []
+
+        self._above_graft_resistance = np.empty(0)
+        self._below_graft_resistance = np.empty(0)
+        self._psi_height = []
+        self._psi_leaf = []
+        self._psi_osmo = []
+        self._psi_top = []
+        self._r_root = []
+        self._r_stem = []
+        self._kf_sap = []
+
+        self.belowground_resources = []
+
+        self._t_ini = t_ini
+        self._t_end = t_end
+        self.time = t_end - t_ini
+
+    ## Before being able to calculate the resources, all tree entities need
+    #  to be added with their relevant allometric measures for the next timestep.
+    #  @param: tree
+    def addTree(self, tree):
+        x, y = tree.getPosition()
+        geometry = tree.getGeometry()
+        parameter = tree.getParameter()
+        self.network = tree.getNetwork()
+
+        self.trees.append(tree)
+
+        self._rgf_counter.append(self.network['rgf'])
+        self._partner_names.append(self.network['partner'])
+        self._potential_partner.append(self.network['potential_partner'])
+
+        self._xe.append(x)
+        self._ye.append(y)
+        self.n_trees = len(self._xe)
+        self._tree_name = np.concatenate((self._tree_name,
+                                         [str(tree.group_name) + str(tree.tree_id)]))
+
+        self._below_graft_resistance = np.concatenate((self._below_graft_resistance,
+                                                       [self.belowGraftResistance(parameter["lp"],
+                                                                                  parameter["k_geom"],
+                                                                                  parameter["kf_sap"],
+                                                                                  geometry["r_root"],
+                                                                                  geometry["h_root"],
+                                                                                  geometry["r_stem"])]
+                                                       ))
+        self._above_graft_resistance = np.concatenate((self._above_graft_resistance,
+                                                       [self.aboveGraftResistance(
+                                                          parameter["kf_sap"], geometry["r_crown"],
+                                                          geometry["h_stem"], geometry["r_stem"])]
+                                                       ))
+
+        self._r_root.append(geometry["r_root"])
+        self._r_stem.append(geometry["r_stem"])
+
+        self._psi_leaf.append(parameter["leaf_water_potential"])
+        self._psi_height.append((2 * geometry["r_crown"] + geometry["h_stem"]) * 9810)
+        self._psi_top = np.array(self._psi_leaf) - np.array(self._psi_height)
+
+        self._kf_sap.append(parameter["kf_sap"])
+
     ## This function returns a list of the growth reduction factors of all trees.
     #  calculated in the subsequent timestep.\n
     #  @return: np.array with $N_tree$ scalars
     def calculateBelowgroundResources(self):
-        self.transpire()
-        self.belowground_resources = ((np.array(self._potential_nosal) +
-                                       np.array(self._salinity) * 85000) /
-                                      np.array(self._potential_nosal))
+        self.calculatePsiOsmo()
+        # Network start
+        self.groupFormation()
+        self.rootGraftFormation()
+        self.calculateBGresourcesTree()
+        # Network end
+        self.calculateNewSalinity()
 
-    ## This function calculates the water balance of each grid cell.
-    # Transpiration, dilution (tidal flooding), exchange between neighbouring
-    # grid cells and gradient flow is regarded for.
-    def transpire(self):
-        ## time step length
-        tsl = (self._t_end - self._t_ini)
-        ## seconds per day
-        s_d = 3600 * 24
-        ##calculate water uptake from grid cells
+        res_b = self.getBGresourcesIndividual(self._psi_top, self._psi_osmo,
+                                              self._above_graft_resistance,
+                                              self._below_graft_resistance)
+        self.belowground_resources = self._water_avail / res_b
+
+        for i, tree in zip(range(0, self.n_trees), self.trees):
+            network = {}
+            network['partner'] = self._partner_names[i]
+            network['rgf'] = self._rgf_counter[i]
+            network['potential_partner'] = self._potential_partner[i]
+            network['water_available'] = self._water_avail[i]
+            network['water_absorbed'] = self._water_absorb[i]
+            network['water_exchanged'] = self._water_exchanged_trees[i]
+            network['psi_osmo'] = self._psi_osmo[i]
+
+            tree.setNetwork(network)
+
+    def calculatePsiOsmo(self):
+        # calculate water uptake from grid cells
         distance = (np.array(self._r_root)[np.newaxis, np.newaxis, :] -
                     ((self._my_grid[0][:, :, np.newaxis] -
-                      np.array(self._xe)[np.newaxis, np.newaxis, :])**2 +
+                      np.array(self._xe)[np.newaxis, np.newaxis, :]) ** 2 +
                      (self._my_grid[1][:, :, np.newaxis] -
-                      np.array(self._ye)[np.newaxis, np.newaxis, :])**2)**0.5)
-        water_loss = np.zeros(np.shape(distance[:, :, 0]))
+                      np.array(self._ye)[np.newaxis, np.newaxis, :]) ** 2) ** 0.5)
         presence = distance > 0
         maxe = np.amax(distance, axis=(0, 1))
         self._salinity = []
-        self.transpiration = []
+        self._psi_osmo = []
         for ii in range(distance.shape[2]):
             closest = distance[:, :, ii] == maxe[ii]
             presence[:, :, ii] = np.fmax(closest, presence[:, :, ii])
             self._salinity.append((np.sum(presence[:, :, ii] * self.salinity) /
                                    np.sum(presence[:, :, ii])))
-            # T = m³/s * tsl  = m³/tsl
-            self.transpiration.append(
-                (-self._potential_nosal[ii] - self._salinity[ii] * 85000) /
-                self._resistance[ii] / np.pi * tsl)
-            water_loss += (self.transpiration[ii] /
-                           np.sum(presence[:, :, ii])) * presence[:, :, ii]
-        print('sal old ' + str(np.mean(self.salinity)))
-        print('transpi ' + str(np.mean(self.transpiration)))
-        ## refill
-        # ppt * m³/day /m³ = ppt/day
-        self.salinity += self._sea_salinity * water_loss / self.volume
-        print('sal refill ' + str(np.mean(self.salinity)))
+            self._psi_osmo.append(-self._salinity[ii] * 85000)
+        self._psi_osmo = np.array(self._psi_osmo)
 
-        ## dilution
-        # ppt/ts * ts/day + ppt * ts/day  = ppt/day
+    ## This function calculates the water balance of each grid cell.
+    # Transpiration, dilution (tidal flooding), exchange between neighbouring
+    # grid cells and gradient flow is regarded for.
+    def calculateNewSalinity(self):
+        tsl = (self._t_end - self._t_ini)       # time step length
+        s_d = 3600 * 24                         # seconds per day
+        distance = (np.array(self._r_root)[np.newaxis, np.newaxis, :] -
+                    ((self._my_grid[0][:, :, np.newaxis] -
+                      np.array(self._xe)[np.newaxis, np.newaxis, :]) ** 2 +
+                     (self._my_grid[1][:, :, np.newaxis] -
+                      np.array(self._ye)[np.newaxis, np.newaxis, :]) ** 2) ** 0.5)
+        water_loss = np.zeros(np.shape(distance[:, :, 0]))
+        presence = distance > 0
+        maxe = np.amax(distance, axis=(0, 1))
+        for ii in range(distance.shape[2]):
+            closest = distance[:, :, ii] == maxe[ii]
+            presence[:, :, ii] = np.fmax(closest, presence[:, :, ii])
+            water_loss += (self._water_absorb[ii] / s_d /
+                            np.sum(presence[:, :, ii])) * presence[:, :, ii]
+        print('water loss ' + str(np.mean(water_loss)))
+        print('sal old ' + str(np.mean(self.salinity)))
+
+        # refill
+        self.salinity += self._sea_salinity * water_loss / self.volume
+
+        # dilution
         self.salinity += (-self.salinity * self.dilution_frac * tsl / s_d +
                           self._sea_salinity * self.dilution_frac * tsl / s_d)
-        print('sal dilution ' + str(np.mean(self.salinity)))
 
-        ## diffusion
-        # tsl sollte nicht größer als 1/_diffusion_frac sein
-        print('dif fac ' + str((1 - self._diffusion_frac * tsl / s_d)))
+        # diffusion
         salinity_new = self.salinity * (1 - self._diffusion_frac * tsl / s_d)
-        print('sal diff ' + str(np.mean(salinity_new)))
-
         # diff in x-dir
         for ii in range(self.x_resolution):
             if ii == self.x_resolution - 1:
                 salinity_new[:, ii] += (self.salinity[:, ii] *
                                         self._diffusion_frac * tsl / s_d / 4)
-                salinity_new[:, ii -
-                             1] += (self.salinity[:, ii] *
+                salinity_new[:, ii - 1] += (self.salinity[:, ii] *
                                     self._diffusion_frac * tsl / s_d / 4)
             elif ii == 0:
                 salinity_new[:, ii +
@@ -122,9 +221,7 @@ class SimpleHydro(BelowgroundCompetition):
                              1, :] += (self.salinity[ii, :] *
                                        self._diffusion_frac * tsl / s_d / 4)
         self.salinity = salinity_new
-        print('sal new ' + str(np.mean(self.salinity)))
-
-        ## gradient-flow
+        # gradient-flow
         multi_fac = self.q_fac * tsl
         salinity_new[0, :] = self.salinity[0, :] * (
             1 - multi_fac) + self._up_sal * multi_fac
@@ -132,7 +229,7 @@ class SimpleHydro(BelowgroundCompetition):
             self.salinity[1:self.y_resolution, :] * (1 - multi_fac) +
             self.salinity[0:(self.y_resolution - 1), :] * multi_fac)
         self.salinity = salinity_new
-        print('sal new gr ' + str(np.mean(self.salinity)))
+        print('sal new ' + str(np.mean(self.salinity)))
 
     ## This function initialises the mesh.\n
     def makeGrid(self, args):
@@ -224,67 +321,3 @@ class SimpleHydro(BelowgroundCompetition):
                     (-_dilution_frac_upper + _dilution_frac_lower) * flodur)
         self.dilution_frac = (np.repeat(np.array([dilu_vec]), self.x_resolution,
                                         axis=0)).transpose()
-
-    ## This functions prepares the tree variables for the SimpleHydro
-    #  concept.\n
-    #  @param t_ini - initial time for next timestep \n
-    #  @param t_end - end time for next timestep
-    def prepareNextTimeStep(self, t_ini, t_end):
-        self._t_ini = t_ini
-        self._t_end = t_end
-        self._r_root = []
-        self._r_crown = []
-        self._r_stem = []
-        self._h_stem = []
-        self._xe = []
-        self._ye = []
-        self._resistance = []
-        self._potential_nosal = []
-
-    ## Before being able to calculate the resources, all tree entities need
-    #  to be added with their relevant allometric measures for the next timestep.
-    #  @param: tree
-    def addTree(self, tree):
-        x, y = tree.getPosition()
-        geometry = tree.getGeometry()
-        parameter = tree.getParameter()
-
-        self._xe.append(x)
-        self._ye.append(y)
-        self._r_root.append(geometry["r_root"])
-        self._r_crown.append(geometry["r_crown"])
-        self._r_stem.append(geometry["r_stem"])
-        self._h_stem.append(geometry["h_stem"])
-        root_surface_resistance = self.rootSurfaceResistance(
-            parameter["lp"], parameter["k_geom"], geometry["r_root"],
-            geometry["h_root"])
-        xylem_resistance = self.xylemResistance(geometry["r_crown"],
-                                                geometry["h_stem"],
-                                                geometry["r_root"],
-                                                parameter["kf_sap"],
-                                                geometry["r_stem"])
-        self._resistance.append(root_surface_resistance + xylem_resistance)
-        self._potential_nosal.append(
-            (parameter["leaf_water_potential"] +
-             (2 * geometry["r_crown"] + geometry["h_stem"]) * 9810))
-
-    ## This function calculates the root surface resistance.
-    #  @param lp: lp value must exist in tree parameters
-    #  @param k_geom: k_geom value must exist in tree parameters
-    #  @param r_root: r_root value must exist in tree geometry
-    #  @param h_root: h_root value must exist in tree geometry
-    def rootSurfaceResistance(self, lp, k_geom, r_root, h_root):
-        root_surface_resistance = (1 / lp / k_geom / np.pi / r_root**2 /
-                                   h_root)
-        return root_surface_resistance
-
-    ## This function calculates the root surface resistance.
-    #  @param r_crown: r_crown value must exist in tree geometry
-    #  @param h_stem: r_stem value must exist in tree geometry
-    #  @param r_root: r_root value must exist in tree geometry
-    #  @param kf_sap: kf_sap value must exist in tree parameters
-    #  @param r_stem: r_stem value must exist in tree geometry
-    def xylemResistance(self, r_crown, h_stem, r_root, kf_sap, r_stem):
-        flow_length = (2 * r_crown + h_stem + 0.5**0.5 * r_root)
-        xylem_resistance = (flow_length / kf_sap / np.pi / r_stem**2)
-        return xylem_resistance
