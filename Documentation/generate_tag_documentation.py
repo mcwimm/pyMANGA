@@ -57,8 +57,10 @@ def edit_dir(dox_parent, md_parent):
                 t_files_in_folder.append(file)
             if case == "s":
                 s_files_in_folder.append(file)
+        # If it is a folder with lower case, append to folders_in...
         elif "." not in file and file.islower():
             folders_in_folder.append(file)
+        # If it is a folder with upper case, append to folders_in...
         elif "." not in file and not file.islower():
             t_folders_in_folder.append(file)
         else:
@@ -89,21 +91,25 @@ def edit_dir(dox_parent, md_parent):
             for line in md_file.readlines():
                 dox_file.write(line)
             if case == "i" or case == "c":
+                # ... and there is either folder, a tag or a specification
+                # or combinations of them
                 if (len(folders_in_folder) + len(t_files_in_folder) +
                         len(s_files_in_folder)) > 0:
                     dox_file.write("# Required inputs: \n \n")
+                    # link a sub folder
                     for subfolder in folders_in_folder:
                         submodule_path = os.path.join(dox_parent, subfolder)
                         subpage_name = submodule_path.strip("./").replace(
                             os.sep, "__") + "__" + subfolder
                         dox_file.write("- \subpage " + subpage_name + "\n")
+                    # link tag files
                     for subfolder in t_files_in_folder:
                         subfolder = subfolder[2:-3]
                         submodule_path = os.path.join(dox_parent, subfolder)
                         subpage_name = submodule_path.strip("./").replace(
                             os.sep, "__")
                         dox_file.write("- \subpage " + subpage_name + "\n")
-
+                    # link specification files
                     for subfolder in s_files_in_folder:
                         subfolder = subfolder[2:-3]
                         submodule_path = os.path.join(dox_parent, subfolder)
