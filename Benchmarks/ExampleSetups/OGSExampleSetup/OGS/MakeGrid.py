@@ -247,26 +247,26 @@ os = platform.system()
 
 
 if os == "Windows":
-    ogs_utilities_string = "ABSOLUTE/PATH/TO/PYMANGA/pyMANGA/ResourceLib/BelowGround/Individual/OGS/bin/"
+    ogs_utilities_string = r"ABSOLUTE/PATH/TO/PYMANGA/ResourceLib/BelowGround/Individual/OGS/bin/"
 
     subprocess.call(ogs_utilities_string + "ExtractSurface -i "
-                                           "bulk.vtu -o "
+                                           "mesh_bulk.vtu -o "
                                            "mesh_right_boundary.vtu -x -1"
                                            " -y 0 -z 0 -a 0.")
     subprocess.call(ogs_utilities_string + "ExtractSurface -i "
-                                           "bulk.vtu -o "
+                                           "mesh_bulk.vtu -o "
                                            "mesh_left_boundary.vtu -x 1 -y"
                                            " 0 -z 0 -a 0.")
     subprocess.call(ogs_utilities_string + "ExtractSurface -i "
-                                           "bulk.vtu -o "
+                                           "mesh_bulk.vtu -o "
                                            "mesh_top_boundary.vtu -x 0 -y"
                                            " 0 -z -1 -a 30.")
 
 
 elif os == "Linux":
 
-    ogs_container_string = "singularity exec ABSOLUTE/PATH/TO/PYMANGA"
-    "/pyMANGA/TreeModelLib/BelowgroundCompetition/OGS/container/"
+    ogs_container_string = "singularity exec ABSOLUTE/PATH/TO/PYMANGA/"
+    "ResourceLib/BelowGround/Individual/OGS/container/"
     "ogs_container.sif "
 
     subprocess.call(ogs_container_string + "ExtractSurface -x -1 -y 0"
@@ -284,6 +284,8 @@ else:
 
     if os == "Darwin":
         os = "MacOS"
+    else:
+        os = 'a operating system which is not supported'
 
     raise KeyError("You are using " + os + ". This script only runs on Linux"
                    " and Windows machines.")
