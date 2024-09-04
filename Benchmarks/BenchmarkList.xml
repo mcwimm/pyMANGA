@@ -125,6 +125,9 @@
             <Random>
                 <test> Random_CI.xml </test>
             </Random>
+            <RandomWeights>
+                <test> RandomWeights_CI.xml </test>
+            </RandomWeights>
             <FromFile>
                 <test> FromFile_CI.xml </test>
             </FromFile>
