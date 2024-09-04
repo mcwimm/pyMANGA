@@ -37,7 +37,11 @@ class XMLtoProject(MangaProject):
         self.root = tree.getroot()
         #  The for loop removes ambiguous spaces of the tag arguments
         for tag in self.root.iter():
-            tag.text = tag.text.strip()
+            try:
+                tag.text = tag.text.strip()
+            except AttributeError:
+                print("Error:", tag, "not found in project file.")
+                exit()
 
     def addNumpyRandomSeed(self):
         """
