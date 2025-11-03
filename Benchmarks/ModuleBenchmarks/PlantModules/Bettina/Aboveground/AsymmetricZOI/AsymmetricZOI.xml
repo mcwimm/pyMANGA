@@ -3,6 +3,8 @@
     <resources>
         <aboveground>
             <type> AsymmetricZOI </type>
+            <backend_type> cpp </backend_type>
+            <!-- or <backend_type> python </backend_type>-->
             <domain>
                 <x_1> 0 </x_1>
                 <y_1> 0 </y_1>
@@ -59,3 +61,5 @@
     </output>
 </MangaProject>
 
+
+<!-- python MANGA.py -i Benchmarks\ModuleBenchmarks\PlantModules\Bettina\Aboveground\AsymmetricZOI\AsymmetricZOI.xml -->

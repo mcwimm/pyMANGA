@@ -43,6 +43,7 @@ cmake --build build-msvc --config Release -- /m
 ```xml
 <aboveground>
     <type>AsymmetricZOI</type>
+    <backend_type>cpp</backend_type>
     <domain>
         <x_1>0</x_1>
         <y_1>0</y_1>
@@ -57,6 +58,7 @@ cmake --build build-msvc --config Release -- /m
 # Attributes
 
 - ``type`` (string): "AsymmetricZOI" (no other values accepted)
+- ``backend_type`` (string): "cpp" or "python" to choose the implementation backend. Default: "cpp"
 - ``domain`` (nesting-tag): coordinates to define the model domain (as mesh)
     - ``x_1`` (float): x-coordinate of left bottom border of grid
     - ``x_2`` (float): x-coordinate of right bottom border of grid

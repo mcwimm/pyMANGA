@@ -1,111 +1,219 @@
-#!/usr/bin/env python3  # Shebang for Unix-like systems to run the script with Python 3
-# -*- coding: utf-8 -*-  # File encoding declaration
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 
-import numpy as np  
-from ResourceLib import ResourceModel  
-from ResourceLib.AboveGround.AsymmetricZOI import asymzoi  # Import compiled C++ core module (pybind11)
+import numpy as np
+from ResourceLib import ResourceModel
 
-class AsymmetricZOI(ResourceModel):  
+# ---- Try to load C++ core (pybind11) ----------------------------------------
+try:
+    from ResourceLib.AboveGround.AsymmetricZOI import asymzoi  # compiled C++ core
+    _ASYMZOI_OK = True
+except Exception:
+    asymzoi = None
+    _ASYMZOI_OK = False
+
+
+class AsymmetricZOI(ResourceModel):
     """
-    AsymmetricZOI above-ground resource concept using the C++ core.  
-    The class computes per-plant aboveground resource factors via asymzoi.compute_aboveground_resources.  
+    AsymmetricZOI above-ground resource concept.
+    Fully compatible with the legacy pure-Python workflow; adds an optional C++ backend.
     """
 
-    def __init__(self, args):  # Constructor accepting XML element 'args'
-        self.getInputParameters(args)  # Parse and load parameters from XML into attributes
-        super().makeGrid()  # Build spatial grid; expects self.my_grid = (grid_x, grid_y)
+    def __init__(self, args):
+        """
+        Args:
+            args (lxml.etree._Element): module specifications from project file tags
+        """
+        case = args.find("type").text  
+        self.getInputParameters(args)
+        super().makeGrid()
+        self._select_backend(args)
 
-        # Determine mesh size: prefer attribute provided by the parent; otherwise infer from grid spacing
-        if hasattr(self, "mesh_size") and self.mesh_size is not None:  # Check if mesh_size is available
-            self._mesh_size = float(self.mesh_size)  # Store mesh size as float for downstream use
-        else:  # If mesh_size is not provided, infer it from the grid arrays
-            gx, gy = self._require_grid()  # Ensure grid exists and retrieve grid arrays
-            _dx = np.median(np.diff(gx[0, :]).astype(np.float64)) if gx.shape[1] > 1 else np.nan  # Median x-spacing
-            _dy = np.median(np.diff(gy[:, 0]).astype(np.float64)) if gy.shape[0] > 1 else np.nan  # Median y-spacing
-            self._mesh_size = float(np.nanmedian([_dx, _dy]) if not np.isnan(_dx) or not np.isnan(_dy) else 1.0)  # Fallback to 1.0 if spacing is undefined
+    # Legacy-compatible Python path
+    def calculateAbovegroundResources(self):
+        """
+        Compute per-plant aboveground resource factor.
+        """
+        # Choose backend
+        if getattr(self, "_backend", "python") == "cpp":
+            self._calculate_cpp_compatible()
+            return
 
-        self.prepareNextTimeStep(t_ini=None, t_end=None)  # Initialize per-timestep containers
+        #Array to save value of highest plant with shape = (res_x, res_y)
+        canopy_height = np.zeros_like(self.my_grid[0])
+        #Array to safe index of highest plant with shape = (res_x, res_y)
+        highest_plant = np.full_like(self.my_grid[0], fill_value=-99999)
+        #Array to safe number of wins per plant with shape = (n_plants)
+        wins = np.zeros_like(self.xe)
+        #Array to safe number of grid_points per plant with shape = (n_plants)
+        crown_areas = np.zeros_like(self.xe)
+        #Iteration over plants to identify highest plant at gridpoint
 
-    def calculateAbovegroundResources(self):  # Public method to compute aboveground resource factors
-        n_plants = len(self.xe)  # Number of plants currently registered
-        if n_plants == 0:  # Handle empty case to avoid unnecessary work
-            self.aboveground_resources = np.array([], dtype=np.float32)  # Set empty result array
-            return  # Exit early when there are no plants
+        for i in range(len(self.xe)):
+            distance = (((self.my_grid[0] - np.array(self.xe)[i])**2 +
+                         (self.my_grid[1] - np.array(self.ye)[i])**2)**0.5)
+            # As the geometry is "complex", my_height is position dependent
+            my_height, canopy_bools = self.calculateHeightFromDistance(
+                np.array([self.h_stem[i]]), np.array([self.r_ag[i]]),
+                distance)
+            crown_areas[i] = np.sum(canopy_bools)
+            indices = np.where(np.less(canopy_height, my_height))
+            canopy_height[indices] = my_height[indices]
+            highest_plant[indices] = i
+        #Check for each plant, at which gridpoint it is the highest plant
 
-        gx, gy = self._require_grid()  # Retrieve validated grid arrays (2D and same shape)
+        for i in range(len(self.xe)):
+            wins[i] = len(np.where(highest_plant == i)[0])
 
-        # Convert inputs to C-contiguous float32 arrays to match the C++ interface and save memory
-        xe = np.ascontiguousarray(np.asarray(self.xe, dtype=np.float32))  # X positions of plants
-        ye = np.ascontiguousarray(np.asarray(self.ye, dtype=np.float32))  # Y positions of plants
-        h_stem = np.ascontiguousarray(np.asarray(self.h_stem, dtype=np.float32))  # Stem heights per plant
-        r_ag = np.ascontiguousarray(np.asarray(self.r_ag, dtype=np.float32))  # Crown radii per plant
-        grid_x = np.ascontiguousarray(gx.astype(np.float32, copy=False))  # Grid X coordinates as float32
-        grid_y = np.ascontiguousarray(gy.astype(np.float32, copy=False))  # Grid Y coordinates as float32
+        self.aboveground_resources = wins / crown_areas
 
-        # Call the C++ core to compute per-plant resource factors (wins / crown_area)
-        out = asymzoi.compute_aboveground_resources(  # Invoke compiled kernel
-            xe, ye, h_stem, r_ag,  # Per-plant vectors for geometry and position
-            grid_x, grid_y,  # Grid coordinate matrices
-            bool(self.curved_crown),  # Whether to use curved crown height profile
-            float(self._mesh_size)  # Mesh size for minimum crown-radius handling
-        )  # End of C++ call
+        nan_indices = np.where(np.isnan(self.aboveground_resources))[0]
 
-        self.aboveground_resources = np.asarray(out, dtype=np.float32)  # Store result as float32 numpy array
+        if len(nan_indices) > 0:
+            print(f"ERROR: NaN detected in aboveground_resources for plants at indices: {nan_indices}")
+            exit()
 
-    def getInputParameters(self, args):  # Parse XML configuration for the module
-        tags = {  # Define required and optional XML tags
-            "prj_file": args,  # Pass the XML element to the parent parser
-            "required": ["type", "domain", "x_1", "x_2", "y_1", "y_2", "x_resolution", "y_resolution"],  # Mandatory fields
-            "optional": ["allow_interpolation", "curved_crown"]  # Optional fields
-        }  # End of tag specification
-        super().getInputParameters(**tags)  # Delegate parsing to the parent implementation
+    def calculateHeightFromDistance(self, stem_height, crown_radius, distance):
+        """
+        Calculate plant heights at each mesh point (node) based on the distance between plant and node.
+        Args:
+            stem_height (array): stem heights (shape: n_plants)
+            crown_radius (array): crown radii (shape: n_plants)
+            distance (array): distance between node and stem positions (shape: x_res, y_res)
 
-        self._x_1 = self.x_1  # Cache domain minimum X
-        self._x_2 = self.x_2  # Cache domain maximum X
-        self._y_1 = self.y_1  # Cache domain minimum Y
-        self._y_2 = self.y_2  # Cache domain maximum Y
-        self.x_resolution = int(self.x_resolution)  # Ensure X resolution is integer
-        self.y_resolution = int(self.y_resolution)  # Ensure Y resolution is integer
+        Returns:
+            array, array (shape: x_res, y_res)
+        """
+        min_distance = np.min(distance)
+        # If crown radius < mesh size, set it to mesh size
+        crown_radius[np.where(crown_radius < min_distance)] = min_distance
 
-        self.allow_interpolation = super().makeBoolFromArg("allow_interpolation")  # Parse boolean for interpolation allowance
-        if not hasattr(self, "curved_crown"):  # If curved_crown flag is absent
-            self.curved_crown = True  # Default to True for curved crown shape
-            print("INFO: set above-ground parameter curved_crown to default:", self.curved_crown)  # Inform about default
-        else:  # If attribute exists from XML
-            self.curved_crown = super().makeBoolFromArg("curved_crown")  # Parse boolean value
+        bools = crown_radius >= distance
+        idx = np.where(bools)
+        height = np.zeros_like(distance)
+        #Here, the curved top of the plant is considered..
+        if self.curved_crown:
+            height[idx] = stem_height + (4 * crown_radius ** 2 -
+                                         distance[idx] ** 2) ** 0.5
+        else:
+            height[idx] = stem_height + 2 * crown_radius
+        return height, bools
 
-    def prepareNextTimeStep(self, t_ini, t_end):  # Reset data containers for a new simulation time step
-        self.xe, self.ye, self.h_stem, self.r_ag = [], [], [], []  # Initialize per-plant arrays
-        self.t_ini, self.t_end = t_ini, t_end  # Store time window for the step
+    # C++ accelerated path
+    def _calculate_cpp_compatible(self):
+        """
+        The C++ acceleration branch packages the data prepared in Python for the pybind11 kernel, which computes the 'above-ground resource factor' for each tree. 
+        The results are then written back to self.aboveground_resources.
 
-    def addPlant(self, plant):  # Register one plant's geometry and position into buffers
-        x, y = plant.getPosition()  # Get plant position (x, y)
-        geometry = plant.getGeometry()  # Get plant geometry dictionary
-        try:  # Try preferred key names
-            r_ag = geometry["r_crown"]  # Crown radius if available
-            h_stem = geometry["h_stem"]  # Stem height if available
-        except KeyError:  # Fallback to legacy key names if needed
-            r_ag = geometry["r_ag"]  # Legacy crown radius
-            h_stem = geometry["height"] - 2 * r_ag  # Derive stem height from total height minus crown diameter
+        """
+        gx, gy = self._require_grid()
 
-        _min_r_ag = float(self._mesh_size) * (1.0 / np.sqrt(2.0))  # Minimum allowed crown radius per cell-size rule
-        if r_ag < _min_r_ag and not getattr(self, "allow_interpolation", False):  # Enforce minimum radius unless interpolation is allowed
-            print("Error: mesh not fine enough for crown dimensions!")  # Error message for insufficient mesh resolution
-            print(  # Additional guidance on how to proceed
-                "Please refine mesh or increase initial crown radius above "
-                f"{self._mesh_size:.6f} m !"  # Include numeric threshold in message
-            )  # End of message
-            raise SystemExit(1)  # Abort execution as configuration is invalid
+        xe = np.ascontiguousarray(np.asarray(self.xe, dtype=np.float32))
+        ye = np.ascontiguousarray(np.asarray(self.ye, dtype=np.float32))
+        h_stem = np.ascontiguousarray(np.asarray(self.h_stem, dtype=np.float32))
+        r_ag = np.ascontiguousarray(np.asarray(self.r_ag, dtype=np.float32))
+        grid_x = np.ascontiguousarray(gx.astype(np.float32, copy=False))
+        grid_y = np.ascontiguousarray(gy.astype(np.float32, copy=False))
 
-        self.xe.append(float(x))  # Append plant x-position as float
-        self.ye.append(float(y))  # Append plant y-position as float
-        self.h_stem.append(float(h_stem))  # Append stem height as float
-        self.r_ag.append(float(r_ag))  # Append crown radius as float
+        out = asymzoi.compute_aboveground_resources(
+            xe, ye, h_stem, r_ag,
+            grid_x, grid_y,
+            bool(self.curved_crown),
+            float(self.mesh_size) if hasattr(self, "mesh_size") else 1.0
+        )
+        self.aboveground_resources = np.asarray(out, dtype=np.float32)
 
-    def _require_grid(self):  # Internal helper to validate and return grid arrays
-        if not hasattr(self, "my_grid") or self.my_grid is None or len(self.my_grid) != 2:  # Ensure grid exists and has two components
-            raise RuntimeError("Grid not initialized. Did super().makeGrid() run?")  # Raise clear error if missing
-        gx, gy = self.my_grid  # Unpack grid components
-        if gx.ndim != 2 or gy.ndim != 2 or gx.shape != gy.shape:  # Validate dimensionality and shape consistency
-            raise RuntimeError("grid_x and grid_y must be 2D arrays with the same shape.")  # Raise error if invalid
-        return gx, gy  # Return validated grid arrays
+    # Parameters
+    def getInputParameters(self, args):
+        tags = {
+            "prj_file": args,
+            "required": ["type", "domain", "x_1", "x_2", "y_1", "y_2", "x_resolution", "y_resolution"],
+            "optional": ["allow_interpolation", "curved_crown", "backend_type"]
+        }
+        super().getInputParameters(**tags)
+
+        self._x_1 = self.x_1
+        self._x_2 = self.x_2
+        self._y_1 = self.y_1
+        self._y_2 = self.y_2
+        self.x_resolution = int(self.x_resolution)
+        self.y_resolution = int(self.y_resolution)
+
+        self.allow_interpolation = super().makeBoolFromArg("allow_interpolation")
+
+        if not hasattr(self, "curved_crown"):
+            self.curved_crown = True
+            print("INFO: set above-ground parameter curved_crown to default: ", self.curved_crown)
+        else:
+            self.curved_crown = super().makeBoolFromArg("curved_crown")
+
+        # for backend_type, only accept 'cpp' or 'python'; others/omitted => AUTO
+        self._use_choice = None
+        try:
+            raw = args.find("backend_type")
+            if raw is not None and raw.text is not None:
+                s = raw.text.strip().lower()
+                if s == "cpp":
+                    self._use_choice = "cpp"
+                elif s == "python":
+                    self._use_choice = "python"
+        except Exception:
+            pass
+
+    def _select_backend(self, args):
+        have_cpp = _ASYMZOI_OK
+        if self._use_choice == "cpp":
+            if have_cpp:
+                self._backend = "cpp"
+                print("[AsymmetricZOI] Backend = cpp")
+            else:
+                self._backend = "python"
+                print("[AsymmetricZOI] WARNING: <backend_type>cpp</backend_type> set, but C++ core not found. Falling back to python.")
+        elif self._use_choice == "python":
+            self._backend = "python"
+            print("[AsymmetricZOI] Backend = python")
+        else:
+            self._backend = "cpp" if have_cpp else "python"
+            print(f"[AsymmetricZOI] Backend = {self._backend} (auto)")
+
+    def prepareNextTimeStep(self, t_ini, t_end):
+        self.xe = []
+        self.ye = []
+        self.h_stem = []
+        self.r_ag = []
+        self.t_ini = t_ini
+        self.t_end = t_end
+
+    def addPlant(self, plant):
+        x, y = plant.getPosition()
+        geometry = plant.getGeometry()
+        try:
+            r_ag = geometry["r_crown"]
+            h_stem = geometry["h_stem"]
+        except KeyError:
+            r_ag = geometry["r_ag"]
+            h_stem = geometry["height"] - 2*r_ag
+
+        if r_ag < (self.mesh_size * 1 / 2**0.5):
+            if not hasattr(self, "allow_interpolation") or not self.allow_interpolation:
+                print("Error: mesh not fine enough for crown dimensions!")
+                print("Please refine mesh or increase initial crown radius above " +
+                      str(self.mesh_size) + "m !")
+                exit()
+
+        self.xe.append(x)
+        self.ye.append(y)
+        self.h_stem.append(h_stem)
+        self.r_ag.append(r_ag)
+
+    def _require_grid(self):
+        """
+        Confirm that the object contains 'my_grid', that it is not 'None', and that it contains precisely 'grid_x' and 'grid_y'. 
+        Otherwise, raise an exception immediately and prompt the user to check whether they have forgotten to call the superclass's `makeGrid()` method.
+        """
+        if not hasattr(self, "my_grid") or self.my_grid is None or len(self.my_grid) != 2:
+            raise RuntimeError("Grid not initialized. Did super().makeGrid() run?")
+        gx, gy = self.my_grid
+        if gx.ndim != 2 or gy.ndim != 2 or gx.shape != gy.shape:
+            raise RuntimeError("grid_x and grid_y must be 2D arrays with the same shape.")
+        return gx, gy
