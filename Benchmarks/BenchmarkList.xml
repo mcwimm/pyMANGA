@@ -18,7 +18,10 @@
             <Bettina>
                 <Aboveground>
                     <AsymmetricZOI>
+                        <test> AsymmetricZOI_CI_cpp.xml </test>
                         <test> AsymmetricZOI_CI.xml </test>
+                        <test> AsymmetricZOI_cpp.xml </test>
+                        <test> AsymmetricZOI.xml </test>
                     </AsymmetricZOI>
                     <SolarRadiation>
                         <test> SolarRadiation_CI.xml </test>
@@ -32,6 +35,7 @@
                         <test> FON_CI.xml </test>
                     </FON>
                     <SymmetricZOI>
+                        <test> SymmetricZOI_CI.xml </test>
                         <test> SymmetricZOI_CI.xml </test>
                     </SymmetricZOI>
                     <Merge_FixedSalinity_sZOI>
