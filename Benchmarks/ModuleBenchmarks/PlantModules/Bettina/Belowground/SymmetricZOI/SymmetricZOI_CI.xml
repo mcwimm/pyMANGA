@@ -6,6 +6,7 @@
         </aboveground>
         <belowground>
             <type> SymmetricZOI </type>
+            <backend_type> python </backend_type>
             <domain>
                 <x_1>0</x_1>
                 <y_1> 0 </y_1>
@@ -58,4 +59,3 @@
         <growth_output> bg_resources </growth_output>
     </output>
 </MangaProject>
-
