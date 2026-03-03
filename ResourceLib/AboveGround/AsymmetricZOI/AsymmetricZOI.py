@@ -22,7 +22,7 @@ class AsymmetricZOI(ResourceModel):
     def __init__(self, args):
         """
         Args:
-            args (lxml.etree._Element): module specifications from project file tags
+            args (lxml.etree._Element): above-ground module specifications from project file tags
         """
         case = args.find("type").text  
         self.getInputParameters(args)
@@ -32,7 +32,9 @@ class AsymmetricZOI(ResourceModel):
     # Legacy-compatible Python path
     def calculateAbovegroundResources(self):
         """
-        Compute per-plant aboveground resource factor.
+        Calculate a growth reduction factor for each plant based on the asymmetric zone of influence concept.
+        Sets:
+            numpy array of shape(number_of_trees)
         """
         # Choose backend
         if getattr(self, "_backend", "python") == "cpp":

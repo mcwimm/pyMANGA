@@ -11,32 +11,9 @@ There is no temporal variation in light availability.
 The C++ core parallelizes the grid evaluation using OpenMP, allowing efficient simulation of large stands with many individuals and fine spatial resolution.
 
 
-# Compilation
-Build Requirements：
-- CMake
-- pybind11  
-Installable via conda-forge in your environment.
-Example:
-```bash
-conda install -c conda-forge cmake pybind11
-```
+# C++ Backend
 
-- Visual Studio 2022 (MSVC + Windows SDK)
-need to be installed manually from Microsoft’s official installer:
-https://visualstudio.microsoft.com/downloads/  
-Be sure to include the Desktop development with C++ workload (this provides MSVC, the Windows SDK, and the build tools).
-
-For windows Compile the C++ core with the following commands in PowerShell:
-```bash
-# Clean the build directory
-Remove-Item -Recurse -Force build-msvc -ErrorAction SilentlyContinue
-
-# Compile the C++ core according to CMakeLists.txt
-cmake -S . -B build-msvc -G "Visual Studio 17 2022" -A x64 `
-  -DCMAKE_BUILD_TYPE=Release `
-  -DPYBIND11_FINDPYTHON=ON
-cmake --build build-msvc --config Release -- /m
-```
+This module supports an optional C++ backend for accelerated computation. See [CppBackend.md](../../../CppBackend.md) for compilation instructions and configuration details.
 
 # Usage
 
