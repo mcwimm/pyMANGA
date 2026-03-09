@@ -43,8 +43,8 @@ Building the C++ backends requires three steps: install prerequisites, run CMake
 |-------------|-------|
 | **CMake** >= 3.18 | Build system generator |
 | **pybind11** | Python ↔ C++ binding library |
-| **C++17 compiler** | GCC, Clang, or MSVC |
-| **OpenMP** *(optional)* | Enables multi-threaded grid evaluation. Bundled with GCC and MSVC; on macOS install via `brew install libomp` |
+| **C++17 compiler** | GCC or MSVC |
+| **OpenMP** *(optional)* | Enables multi-threaded grid evaluation. Bundled with GCC and MSVC |
 
 ```bash
 # conda (recommended)
@@ -58,7 +58,7 @@ On **Windows**, also install [Visual Studio 2022](https://visualstudio.microsoft
 
 ### Step 2 — Build
 
-**Linux / macOS**
+**Linux**
 
 ```bash
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DPYBIND11_FINDPYTHON=ON
@@ -76,7 +76,7 @@ cmake --build build-msvc --config Release -- /m
 
 ### Step 3 — Verify
 
-After a successful build, the compiled extensions (`.so` on Linux/macOS, `.pyd` on Windows) are placed directly into the corresponding source directories, for example:
+After a successful build, the compiled extensions (`.so` on Linux, `.pyd` on Windows) are placed directly into the corresponding source directories, for example:
 
 ```
 ResourceLib/AboveGround/AsymmetricZOI/asymzoi.cpython-310-x86_64-linux-gnu.so
@@ -119,5 +119,5 @@ No thread configuration is needed in the XML project file. If OpenMP is not inst
 |---------|----------|
 | `WARNING: C++ core not found. Falling back to python.` | The compiled extension was not found. Run the build commands in Step 2. |
 | CMake cannot find pybind11 | Ensure pybind11 is installed in the **same** Python environment. Try `pip install pybind11` or `conda install -c conda-forge pybind11`. |
-| OpenMP not detected | Install an OpenMP-capable compiler. On macOS: `brew install libomp`. |
+| OpenMP not detected | Install an OpenMP-capable compiler (GCC on Linux, MSVC on Windows). |
 | Import errors after build | Verify the `.so`/`.pyd` file exists in the correct module directory (see Step 3). |

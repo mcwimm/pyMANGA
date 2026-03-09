@@ -27,7 +27,7 @@ class AsymmetricZOI(ResourceModel):
         case = args.find("type").text  
         self.getInputParameters(args)
         super().makeGrid()
-        self._select_backend(args)
+        self._selectBackend()
 
     # Legacy-compatible Python path
     def calculateAbovegroundResources(self):
@@ -38,7 +38,7 @@ class AsymmetricZOI(ResourceModel):
         """
         # Choose backend
         if getattr(self, "_backend", "python") == "cpp":
-            self._calculate_cpp_compatible()
+            self._calculateCppCompatible()
             return
 
         #Array to save value of highest plant with shape = (res_x, res_y)
@@ -102,13 +102,13 @@ class AsymmetricZOI(ResourceModel):
         return height, bools
 
     # C++ accelerated path
-    def _calculate_cpp_compatible(self):
+    def _calculateCppCompatible(self):
         """
         The C++ acceleration branch packages the data prepared in Python for the pybind11 kernel, which computes the 'above-ground resource factor' for each tree. 
         The results are then written back to self.aboveground_resources.
 
         """
-        gx, gy = self._require_grid()
+        gx, gy = self._requireGrid()
 
         xe = np.ascontiguousarray(np.asarray(self.xe, dtype=np.float32))
         ye = np.ascontiguousarray(np.asarray(self.ye, dtype=np.float32))
@@ -162,7 +162,7 @@ class AsymmetricZOI(ResourceModel):
         except Exception:
             pass
 
-    def _select_backend(self, args):
+    def _selectBackend(self):
         have_cpp = _ASYMZOI_OK
         if self._use_choice == "cpp":
             if have_cpp:
@@ -208,7 +208,7 @@ class AsymmetricZOI(ResourceModel):
         self.h_stem.append(h_stem)
         self.r_ag.append(r_ag)
 
-    def _require_grid(self):
+    def _requireGrid(self):
         """
         Confirm that the object contains 'my_grid', that it is not 'None', and that it contains precisely 'grid_x' and 'grid_y'. 
         Otherwise, raise an exception immediately and prompt the user to check whether they have forgotten to call the superclass's `makeGrid()` method.

@@ -1,67 +1,11 @@
-# ============================================================
-# CmakeLists overview (pymanga_cpp) — What this CMake does
-# Author: Guanzhen
-# Date:   2025-09-16
-# ============================================================
-# Goals
-# - Build high-performance Python extension modules (pybind11) for pyMANGA.
-# - Keep a developer-friendly layout (write .so/.pyd back into the source tree)
-#   while also supporting clean install into Python’s site-packages.
+# CMakeLists.txt — Build pybind11 C++ extensions for pyMANGA
 #
-# Key features
-# 1) Python & pybind11 integration
-#    - Locates Python (Interpreter + Development.Module) and pybind11.
-#    - Falls back to discovering pybind11 via Python if the CMake package is not on CMAKE_PREFIX_PATH.
+# See CppBackend.md for user-facing documentation (prerequisites,
+# build instructions, configuration, and troubleshooting).
 #
-# 2) Cross-platform optimization presets
-#    - C++17, -O3, hidden visibility on GCC/Clang; /O2, /utf-8, /permissive- on MSVC.
-#    - Optional IPO/LTO (PYMANGA_ENABLE_LTO).
-#    - Position-independent code and compile_commands.json enabled by default.
-#
-# 3) Optional OpenMP
-#    - Links OpenMP if available. Threading is controlled solely via environment
-#      (e.g., OMP_NUM_THREADS, OMP_PROC_BIND, OMP_PLACES); no hardcoding in code.
-#
-# 4) Robust runtime linking on Linux
-#    - Sets RPATH to Python’s LIBDIR and $ORIGIN so the module can locate
-#      libpython and friends when run from site-packages or the source tree.
-#
-# 5) Developer layout & install behavior
-#    - PYMANGA_DEV_LAYOUT=ON: write the built extension (.so/.pyd) directly into
-#      the package’s source subfolder (run without installing).
-#    - PYMANGA_INSTALL_BACK_TO_SOURCE=ON: optionally copy the built artifact back
-#      to the source tree during `cmake --install`.
-#    - Default install prefix = Python site-packages (purelib/sitearch).
-#
-# 6) Selective builds
-#    - PYMANGA_BUILD_LIST controls which modules to build (semicolon-separated);
-#      empty means “build all”.
-#
-# 7) Helper for modules
-#    - add_hpc_module_in_tree(<name> <dest_subdir_in_package> <sources...>)
-#      encapsulates: pybind11 target creation, OpenMP link, macro toggles,
-#      dev layout outputs, and site-packages install destinations.
-#
-# Included module(s)
-# - asymzoi  →  ResourceLib/AboveGround/AsymmetricZOI/AsymmetricZOI.cpp
-#   (C++ core for Asymmetric Zone-of-Influence, called from Python)
-#
-# Notes
-# - No thread parameter is passed through the Python API; threading is governed
-#   by the environment only.
-# - On MSVC, PDBs remain in the build directory; only the extension is copied to
-#   the source tree (dev layout) / site-packages (install).
-#
-# Typical usage!!!!!
-# Before you start, make sure you use the CmakeLists.txt file to compile C++.
-# Just run the following commands in your terminal:
-#Remove-Item -Recurse -Force build-msvc -ErrorAction SilentlyContinue
-#cmake -S . -B build-msvc -G "Visual Studio 17 2022" -A x64 `
-#  -DCMAKE_BUILD_TYPE=Release `
-#  -DPYBIND11_FINDPYTHON=ON
-#cmake --build build-msvc --config Release -- /m
-#
-# ============================================================
+# Quick start:
+#   cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DPYBIND11_FINDPYTHON=ON
+#   cmake --build build
 
 
 cmake_minimum_required(VERSION 3.18)
