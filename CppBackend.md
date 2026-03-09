@@ -84,7 +84,7 @@ ResourceLib/AboveGround/AsymmetricZOI/asymzoi.cpython-310-x86_64-linux-gnu.so
 
 No manual copying or installation is needed — Python imports them from these locations automatically.
 
-## Advanced Options
+## Advanced Options (for developer)
 
 ### CMake variables
 
@@ -112,6 +112,12 @@ export OMP_NUM_THREADS=4
 ```
 
 No thread configuration is needed in the XML project file. If OpenMP is not installed, the build still succeeds but runs single-threaded.
+
+## Performance Notes
+
+The C++ backends provide the most benefit for simulations with **large grids** (high spatial resolution) and/or **many plants**. For small problem sizes (e.g., 80×80 grid with a handful of plants), the speedup may be modest.
+
+When benchmarking, be aware that the **first invocation** after a system restart incurs a few extra seconds of cold-start time while the operating system loads the compiled shared library (`.so`/`.pyd`) and its dependencies (OpenMP runtime, libstdc++, etc.) from disk into the page cache. Once cached, subsequent runs load these libraries from memory almost instantly. This overhead is negligible for real-world simulations that run for minutes or hours.
 
 ## Troubleshooting
 

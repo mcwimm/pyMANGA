@@ -1,14 +1,12 @@
 # Description
 
-This module calculates the reduction in above-ground resource availability due to competition for light between neighboring plants, implemented in a high-performance C++ backend and exposed to Python via pybind11.
+This module calculates the reduction in above-ground resource availability caused by the competition for light between neighboring plants.
 The calculation is based on the overlap of above-ground biomass, using the asymmetric zone-of-influence (ZOI) concept.
 The description of above-ground biomass depends on the abstraction of the plant geometry in chosen plant growth model.
 For example, in `pyMANGA.PlantModelLib.Bettina`, this is the canopy of a tree with the shape of a hemisphere.
 
 This concepts assumes that a plant without neighbors gets 100% of the available light.
 There is no temporal variation in light availability.
-
-The C++ core parallelizes the grid evaluation using OpenMP, allowing efficient simulation of large stands with many individuals and fine spatial resolution.
 
 
 # C++ Backend
@@ -35,7 +33,7 @@ This module supports an optional C++ backend for accelerated computation. See [C
 # Attributes
 
 - ``type`` (string): "AsymmetricZOI" (no other values accepted)
-- ``backend_type`` (string): "cpp" or "python" to choose the implementation backend. Default: "cpp"
+- ``backend_type`` (string): (optional) "cpp" for C++ accelerated backend, "python" for pure Python. If omitted, auto-selects C++ when available, otherwise falls back to Python.
 - ``domain`` (nesting-tag): coordinates to define the model domain (as mesh)
     - ``x_1`` (float): x-coordinate of left bottom border of grid
     - ``x_2`` (float): x-coordinate of right bottom border of grid
@@ -141,9 +139,9 @@ Jasper Bathmann, Ronny Peters, Marie-Christin Wimmler, Guanzhen Liu
 
 # Examples
 
-- Define the large grid on which to calculate above-ground resource availability.
-- The total size is 1000x1000 m, and a cell is 0.25 x 0.25 m (20 m / 80 cells = 0.25 m/cell).
-- Since interpolation is allowed, the canopy can be within a cell without "touching" a node, i.e. with a radius less than 0.177 m. 
+- Define the grid on which to calculate above-ground resource availability.
+- The total size is 20x20 m, and a cell is 0.25 x 0.25 m (20 m / 80 cells = 0.25 m/cell).
+- Since interpolation is allowed, the canopy can be within a cell without "touching" a node, i.e. with a radius less than 0.177 m.
 
 ```xml
 
@@ -152,10 +150,10 @@ Jasper Bathmann, Ronny Peters, Marie-Christin Wimmler, Guanzhen Liu
     <domain>
         <x_1>0</x_1>
         <y_1>0</y_1>
-        <x_2>1000</x_2>
-        <y_2>1000</y_2>
-        <x_resolution>4000</x_resolution>
-        <y_resolution>4000</y_resolution>
+        <x_2>20</x_2>
+        <y_2>20</y_2>
+        <x_resolution>80</x_resolution>
+        <y_resolution>80</y_resolution>
     </domain>
     <allow_interpolation>True</allow_interpolation>
 </aboveground>
