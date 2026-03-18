@@ -36,7 +36,7 @@ Using pyMANGA exactly as provided in the official release:
 - Cite the official version you used:  GitHub release (<a target="_black" href="https://github.com/pymanga/pyMANGA/releases">version tag</a>)
 - Optionally cite the official pyMANGA publication: <a target="_blank" href="https://doi.org/10.1016/j.envsoft.2024.105973">Wimmler et al. 2024</a>
 
-**Case 2 – Extended / modified usage (<ins>not verified</ins>)**
+**Case 2 – Extended / modified usage (*not verified*)**
 
 Using pyMANGA with your own changes or new features that have not been verified by the pyMANGA team:
 - Cite the official pyMANGA version as above
