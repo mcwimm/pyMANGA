@@ -13,3 +13,9 @@ http://pymanga.forst.tu-dresden.de/
 # Source code and input documentation
 
 https://pymanga.github.io/pyMANGA/pyMANGA.html
+
+# How to cite pyMANGA
+
+- **Standard usage**: Use pyMANGA as released → cite GitHub release
+- **Modified, unverified**: You added changes not verified by the pyMANGA team → cite release and describe your modifications
+- **Verified features**: Use features included in an official release → cite GitHub release
