@@ -26,6 +26,28 @@ All parameters are defined in SI units unless indicated otherwise.
 - Find the source code on <a target="_blank" href="https://github.com/pymanga/pyMANGA">GitHub</a>
 - Problems? <a target="_blank" href="https://github.com/pymanga/pyMANGA/issues/new">File an Issue</a>
 
+### How to cite pyMANGA
+
+When using pyMANGA, please cite according to your usage:
+
+**Case 1 – Standard usage**
+
+Using pyMANGA exactly as provided in the official release:  
+- Cite the official version you used:  GitHub release (<a target="_black" href="https://github.com/pymanga/pyMANGA/releases">version tag</a>)
+- Optionally cite the official pyMANGA publication: <a target="_blank" href="https://doi.org/10.1016/j.envsoft.2024.105973">Wimmler et al. 2024</a>
+
+**Case 2 – Extended / modified usage (<ins>not verified</ins>)**
+
+Using pyMANGA with your own changes or new features that have not been verified by the pyMANGA team:
+- Cite the official pyMANGA version as above
+- Clearly describe your modifications in your methods or supplementary material
+- Note that these changes are not verified by the pyMANGA team
+
+**Case 3 – Extended usage with verified features**
+
+Using pyMANGA with features that are included in the official release:
+- Cite the official pyMANGA version including the new features: GitHub release (<a target="_black" href="https://github.com/pymanga/pyMANGA/releases">version tag</a>)
+
 
 ### CoreTeam
 
