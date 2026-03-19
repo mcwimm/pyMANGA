@@ -28,30 +28,24 @@ All parameters are defined in SI units unless indicated otherwise.
 
 ### How to cite pyMANGA
 
-When using pyMANGA, please cite according to your usage:
+When using pyMANGA, please:
+- Cite the specific version used in all publications  
+- Clearly disclose any modifications in the methods section  
+- Seek verification for new features intended for production use  
 
-**Case 1 – Standard usage**
 
-Using pyMANGA exactly as provided in the official release:  
-- Cite the official version you used:  GitHub release (<a target="_black" href="https://github.com/pymanga/pyMANGA/releases">version tag</a>)
-- Optionally cite the official pyMANGA publication: <a target="_blank" href="https://doi.org/10.1016/j.envsoft.2024.105973">Wimmler et al. 2024</a>
+The table below provides guidance on how to cite pyMANGA depending on your type of usage.
 
-**Case 2 – Extended / modified usage (*not verified*)**
-
-Using pyMANGA with your own changes or new features that have not been verified by the pyMANGA team:
-- Cite the official pyMANGA version as above
-- Clearly describe your modifications in your methods or supplementary material
-- Note that these changes are not verified by the pyMANGA team
-
-**Case 3 – Extended usage with verified features**
-
-Using pyMANGA with features that are included in the official release:
-- Cite the official pyMANGA version including the new features: GitHub release (<a target="_black" href="https://github.com/pymanga/pyMANGA/releases">version tag</a>)
+| Case                                          | Description | Example citation                                                                                                                                                                                                                                                                                                                                                                                 |
+|-----------------------------------------------|------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **1 – Standard usage**                        | Use of pyMANGA without any modifications. | *"We used pyMANGA (version [INSERT <a target="_black" href="https://github.com/pymanga/pyMANGA/releases">VERSION TAG</a>]) without modifications (Optional: <a target="_blank" href="https://doi.org/10.1016/j.envsoft.2024.105973">Wimmler et al. 2024</a>)."* |
+| **2 – Modified usage (not verified)**       | Use of pyMANGA with custom modifications that have **not been verified** by the pyMANGA team. | *"We used pyMANGA (version [INSERT <a target="_black" href="https://github.com/pymanga/pyMANGA/releases">VERSION TAG</a>]) with custom modifications to [briefly describe components/modules]. These changes have not been verified by the pyMANGA team. Details are in [Methods/Supplementary Material]."*     |
+| **3 – Extended usage with verified features** | Use of pyMANGA including features that are part of an official release (i.e. **verified and integrated**). | *"We used pyMANGA (version [INSERT <a target="_black" href="https://github.com/pymanga/pyMANGA/releases">VERSION TAG</a>]), which includes verified new features described in [Methods/Supplementary Material] and incorporated into the pyMANGA documentation (https://pymanga.github.io/pyMANGA).*"                                                                                                       |
 
 
 ### CoreTeam
 
-@<a target="_blank" href="https://github.com/jbathmann">jbathmann</a>
 @<a target="_blank" href="https://github.com/mcwimm">mcwimm</a>
+@<a target="_blank" href="https://github.com/jbathmann">jbathmann</a>
 @<a target="_blank" href="https://github.com/jvollhueter">jvollhueter</a>
 
