@@ -25,7 +25,7 @@ class SymmetricZOI(ResourceModel):
         case = args.find("type").text
         self.getInputParameters(args)
         super().makeGrid()
-        self._select_backend(args)
+        self._selectBackend()
 
     def prepareNextTimeStep(self, t_ini, t_end):
         self.xe = []
@@ -70,7 +70,7 @@ class SymmetricZOI(ResourceModel):
         """
         # Choose backend
         if getattr(self, "_backend", "python") == "cpp":
-            self._calculate_cpp_compatible()
+            self._calculateCppCompatible()
             return
 
         # Numpy array of shape [res_x, res_y, n_plants]
@@ -112,13 +112,13 @@ class SymmetricZOI(ResourceModel):
             exit()
 
     # C++ accelerated path
-    def _calculate_cpp_compatible(self):
+    def _calculateCppCompatible(self):
         """
         The C++ acceleration branch packages the data prepared in Python for the pybind11 kernel,
-        which computes the 'below-ground resource factor' for each tree.
+        which computes the 'below-ground resource factor' for each plant.
         The results are then written back to self.belowground_resources.
         """
-        gx, gy = self._require_grid()
+        gx, gy = self._requireGrid()
 
         xe = np.ascontiguousarray(np.asarray(self.xe, dtype=np.float32))
         ye = np.ascontiguousarray(np.asarray(self.ye, dtype=np.float32))
@@ -129,7 +129,7 @@ class SymmetricZOI(ResourceModel):
         out = symzoi.compute_belowground_resources(
             xe, ye, r_root,
             grid_x, grid_y,
-            float(self.mesh_size) if hasattr(self, "mesh_size") else 1.0
+            float(self.mesh_size)
         )
         self.belowground_resources = np.asarray(out, dtype=np.float32)
 
@@ -176,7 +176,7 @@ class SymmetricZOI(ResourceModel):
         except Exception:
             pass
 
-    def _select_backend(self, args):
+    def _selectBackend(self):
         have_cpp = _SYMZOI_OK
         if self._use_choice == "cpp":
             if have_cpp:
@@ -192,11 +192,8 @@ class SymmetricZOI(ResourceModel):
             self._backend = "cpp" if have_cpp else "python"
             print(f"[SymmetricZOI] Backend = {self._backend} (auto)")
 
-    def _require_grid(self):
-        """
-        Confirm that the object contains 'my_grid', that it is not 'None', and that it contains precisely 'grid_x' and 'grid_y'.
-        Otherwise, raise an exception immediately and prompt the user to check whether they have forgotten to call the superclass's `makeGrid()` method.
-        """
+    def _requireGrid(self):
+        """Raise RuntimeError if my_grid is absent or malformed."""
         if not hasattr(self, "my_grid") or self.my_grid is None or len(self.my_grid) != 2:
             raise RuntimeError("Grid not initialized. Did super().makeGrid() run?")
         gx, gy = self.my_grid

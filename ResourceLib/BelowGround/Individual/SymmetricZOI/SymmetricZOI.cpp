@@ -48,7 +48,7 @@ py::array_t<float> compute_belowground_resources(
     py::array_t<float, py::array::c_style | py::array::forcecast> r_root,
     py::array_t<float, py::array::c_style | py::array::forcecast> grid_x,
     py::array_t<float, py::array::c_style | py::array::forcecast> grid_y,
-    float mesh_size, int n_threads /* -1 -> auto, currently unused */) {
+    float mesh_size, int n_threads /* -1 -> auto */) {
 
     // Basic input validation & grid bookkeeping
     const int n_plants = (int)xe.size();
@@ -66,7 +66,10 @@ py::array_t<float> compute_belowground_resources(
 
 #ifdef _OPENMP
     omp_set_dynamic(0);
-    omp_set_num_threads(omp_get_num_procs());
+    if (n_threads > 0)
+        omp_set_num_threads(n_threads);
+    else
+        omp_set_num_threads(omp_get_num_procs());
 #endif
 
     // Tolerance for checking whether a plant covers a grid cell (e^-20)
@@ -163,5 +166,5 @@ PYBIND11_MODULE(symzoi, m) {
           py::arg("xe"), py::arg("ye"), py::arg("r_root"),
           py::arg("grid_x"), py::arg("grid_y"),
           py::arg("mesh_size"),
-          py::arg("n_threads") = -1);  // currently ignored inside the function
+          py::arg("n_threads") = -1);
 }
