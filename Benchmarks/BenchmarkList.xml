@@ -18,9 +18,9 @@
             <Bettina>
                 <Aboveground>
                     <AsymmetricZOI>
-                        <test> AsymmetricZOI_CI_cpp.xml </test>
+                        <test> AsymmetricZOIcpp_CI.xml </test>
                         <test> AsymmetricZOI_CI.xml </test>
-                        <test> AsymmetricZOI_cpp.xml </test>
+                        <test> AsymmetricZOIcpp.xml </test>
                         <test> AsymmetricZOI.xml </test>
                     </AsymmetricZOI>
                     <SolarRadiation>
