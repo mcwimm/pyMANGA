@@ -155,6 +155,7 @@ class AsymmetricZOI(ResourceModel):
 
     def _selectBackend(self):
         have_cpp = _ASYMZOI_OK
+        self.backend_type = str(self.backend_type).strip().lower()
         if self.backend_type == "cpp":
             if have_cpp:
                 self._backend = "cpp"

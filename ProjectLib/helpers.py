@@ -29,7 +29,7 @@ def getInputParameters(myself, **tags):
                 try:
                     myself.__setattr__(tag, float(eval(arg.text)))
                 except (ValueError, NameError, SyntaxError):
-                    myself.__setattr__(tag, str(arg.text).lower())
+                    myself.__setattr__(tag, str(arg.text))
         try:
             required_tags.remove(tag)
         except ValueError:
@@ -40,7 +40,7 @@ def getInputParameters(myself, **tags):
                 try:
                     myself.__setattr__(tag, float(eval(arg.text)))
                 except (ValueError, NameError, SyntaxError):
-                    myself.__setattr__(tag, str(arg.text).lower())
+                    myself.__setattr__(tag, str(arg.text))
 
     if len(required_tags) > 0:
         string = ""

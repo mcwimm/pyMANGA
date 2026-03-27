@@ -73,7 +73,7 @@ class ResourceModel:
                     try:
                         super(ResourceModel, self).__setattr__(tag, float(eval(arg.text)))
                     except (ValueError, NameError, SyntaxError):
-                        super(ResourceModel, self).__setattr__(tag, str(arg.text).lower())
+                        super(ResourceModel, self).__setattr__(tag, str(arg.text))
             try:
                 required_tags.remove(tag)
             except ValueError:
@@ -84,7 +84,7 @@ class ResourceModel:
                     try:
                         super(ResourceModel, self).__setattr__(tag, float(eval(arg.text)))
                     except (ValueError, NameError, SyntaxError):
-                        super(ResourceModel, self).__setattr__(tag, str(arg.text).lower())
+                        super(ResourceModel, self).__setattr__(tag, str(arg.text))
 
         if len(required_tags) > 0:
             string = ""
