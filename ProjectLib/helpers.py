@@ -21,6 +21,7 @@ def getInputParameters(myself, **tags):
         optional_tags = tags["optional"]
     except KeyError:
         optional_tags = []
+    case_insensitive = tags.get("case_insensitive", [])
 
     for arg in prj_file_tags.iterdescendants():
         tag = arg.tag
@@ -29,7 +30,10 @@ def getInputParameters(myself, **tags):
                 try:
                     myself.__setattr__(tag, float(eval(arg.text)))
                 except (ValueError, NameError, SyntaxError):
-                    myself.__setattr__(tag, str(arg.text))
+                    value = str(arg.text)
+                    if tag in case_insensitive:
+                        value = value.strip().lower()
+                    myself.__setattr__(tag, value)
         try:
             required_tags.remove(tag)
         except ValueError:
@@ -40,7 +44,10 @@ def getInputParameters(myself, **tags):
                 try:
                     myself.__setattr__(tag, float(eval(arg.text)))
                 except (ValueError, NameError, SyntaxError):
-                    myself.__setattr__(tag, str(arg.text))
+                    value = str(arg.text)
+                    if tag in case_insensitive:
+                        value = value.strip().lower()
+                    myself.__setattr__(tag, value)
 
     if len(required_tags) > 0:
         string = ""

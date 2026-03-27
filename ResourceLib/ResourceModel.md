@@ -29,6 +29,13 @@ This library also contains superordinate functions that can be used by all resou
 
 Reads and processes the specifications provided in the project file relevant for the chosen resource module.
 
+The ``tags`` dictionary supports the following keys:
+
+- ``prj_file``: XML element containing module parameters
+- ``required``: list of required tag names
+- ``optional``: list of optional tag names
+- ``case_insensitive``: (optional) list of tag names whose string values should be converted to lowercase. Tags not in this list preserve their original case. Use this for enum-like parameters (e.g. ``backend_type``) but not for file paths.
+
 #### makeGrid
 
 Create a regular grid that extends a rectangle of size x*y, where

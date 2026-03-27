@@ -33,7 +33,7 @@ This module supports an optional C++ backend for accelerated computation. See `p
 # Attributes
 
 - ``type`` (string): "AsymmetricZOI" (no other values accepted)
-- ``backend_type`` (string): (optional) "cpp" for C++ accelerated backend, "python" for pure Python. If omitted, auto-selects C++ when available, otherwise falls back to Python.
+- ``backend_type`` (string): (optional, case-insensitive) "cpp" for C++ accelerated backend, "python" for pure Python. If omitted, auto-selects C++ when available, otherwise falls back to Python.
 - ``domain`` (nesting-tag): coordinates to define the model domain (as mesh)
     - ``x_1`` (float): x-coordinate of left bottom border of grid
     - ``x_2`` (float): x-coordinate of right bottom border of grid
