@@ -110,12 +110,12 @@ class AsymmetricZOI(ResourceModel):
         """
         gx, gy = self._requireGrid()
 
-        xe = np.ascontiguousarray(np.asarray(self.xe, dtype=np.float32))
-        ye = np.ascontiguousarray(np.asarray(self.ye, dtype=np.float32))
-        h_stem = np.ascontiguousarray(np.asarray(self.h_stem, dtype=np.float32))
-        r_ag = np.ascontiguousarray(np.asarray(self.r_ag, dtype=np.float32))
-        grid_x = np.ascontiguousarray(gx.astype(np.float32, copy=False))
-        grid_y = np.ascontiguousarray(gy.astype(np.float32, copy=False))
+        xe = np.ascontiguousarray(np.asarray(self.xe, dtype=np.float64))
+        ye = np.ascontiguousarray(np.asarray(self.ye, dtype=np.float64))
+        h_stem = np.ascontiguousarray(np.asarray(self.h_stem, dtype=np.float64))
+        r_ag = np.ascontiguousarray(np.asarray(self.r_ag, dtype=np.float64))
+        grid_x = np.ascontiguousarray(gx.astype(np.float64, copy=False))
+        grid_y = np.ascontiguousarray(gy.astype(np.float64, copy=False))
 
         out = asymzoi.compute_aboveground_resources(
             xe, ye, h_stem, r_ag,
@@ -123,7 +123,7 @@ class AsymmetricZOI(ResourceModel):
             bool(self.curved_crown),
             float(self.mesh_size) if hasattr(self, "mesh_size") else 1.0
         )
-        self.aboveground_resources = np.asarray(out, dtype=np.float32)
+        self.aboveground_resources = np.asarray(out, dtype=np.float64)
 
     # Parameters
     def getInputParameters(self, args):
