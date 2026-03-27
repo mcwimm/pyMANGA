@@ -8,10 +8,10 @@ The C++ backends are **fully optional**. If the compiled extension is not found,
 
 ## Supported Modules
 
-| Module | Extension name | Source file |
-|--------|---------------|-------------|
-| `ResourceLib.AboveGround.AsymmetricZOI` | `asymzoi` | `AsymmetricZOI.cpp` |
-| `ResourceLib.BelowGround.Individual.SymmetricZOI` | `symzoi` | `SymmetricZOI.cpp` |
+| Module                                                    | Extension name | Source file |
+|-----------------------------------------------------------|---------------|-------------|
+| `pyMANGA.ResourceLib.AboveGround.AsymmetricZOI` | `asymzoi` | `AsymmetricZOI.cpp` |
+| `pyMANGA.ResourceLib.BelowGround.Individual.SymmetricZOI` | `symzoi` | `SymmetricZOI.cpp` |
 
 ## XML Configuration
 

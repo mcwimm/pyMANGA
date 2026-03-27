@@ -11,7 +11,7 @@ There is no temporal variation in light availability.
 
 # C++ Backend
 
-This module supports an optional C++ backend for accelerated computation. See [CppBackend.md](../../../CppBackend.md) for compilation instructions and configuration details.
+This module supports an optional C++ backend for accelerated computation. See `pyMANGA.ResourceLib` for compilation instructions and configuration details.
 
 # Usage
 
