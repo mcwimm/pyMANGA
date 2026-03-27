@@ -106,26 +106,21 @@ py::array_t<double> compute_aboveground_resources(
         int iy = std::clamp((int)std::round((y - origin_y) / y_step), 0, gy-1);
         double ndx = pgx[iy * gx + ix] - x;
         double ndy = pgy[iy * gx + ix] - y;
-        double min_d2 = ndx*ndx + ndy*ndy;       // squared distance to nearest cell
-        // Clamp crown radius; use min_d2 directly for r2 to avoid sqrt-square roundtrip
-        double r2;
-        if (r*r < min_d2) {
-            r  = std::sqrt(min_d2);
-            r2 = min_d2;                          // exact: guarantees nearest cell is covered
-        } else {
-            r2 = r*r;
-        }
+        double min_dist = std::sqrt(ndx*ndx + ndy*ndy);
+        if (r < min_dist) r = min_dist;          // enforce minimum crown radius
+        const double r2 = r*r;
         int local=0;                             // cells covered by this plant's crown
 
-        // Iterate all grid cells; if within radius, compute cell crown height.
-        // Strict '>' tie rule: later plants only win if strictly taller.
+        // Iterate all grid cells; compare using sqrt(d2) to match Python exactly.
+        // Python: bools = crown_radius >= distance (linear space comparison).
 #ifdef _OPENMP
         #pragma omp parallel for schedule(static) reduction(+:local)
 #endif
         for (int idx=0; idx<grid_size; ++idx){
             double dx = pgx[idx]-x, dy = pgy[idx]-y;
             double d2 = dx*dx + dy*dy;
-            if (d2<=r2){
+            double dist = std::sqrt(d2);
+            if (r >= dist){
                 double cell_h = curved_crown
                     ? (h + std::sqrt(std::max(0.0, 4.0*r2 - d2)))  // curved dome
                     : (h + 2.0*r);                                  // flat top
