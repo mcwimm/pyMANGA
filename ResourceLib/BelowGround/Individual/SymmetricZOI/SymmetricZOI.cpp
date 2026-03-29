@@ -10,7 +10,8 @@
 //
 // Notes
 // -----
-// - Inputs are provided as NumPy arrays from Python.
+// - Inputs are provided as NumPy arrays (float64) from Python.
+// - All internal computation uses double precision to match the Python path.
 // - OpenMP (if available) parallelizes the loop over grid cells.
 //
 // Safety / Validation
@@ -41,14 +42,14 @@ namespace py = pybind11;
 //   grid_x/y    : 2D (gy x gx) coordinate arrays for the grid
 //   mesh_size   : grid mesh size used for minimum-radius handling
 // Returns
-//   1D (n_plants) float array with per-plant belowground resource factor ∈ [0, 1]
-py::array_t<float> compute_belowground_resources(
-    py::array_t<float, py::array::c_style | py::array::forcecast> xe,
-    py::array_t<float, py::array::c_style | py::array::forcecast> ye,
-    py::array_t<float, py::array::c_style | py::array::forcecast> r_root,
-    py::array_t<float, py::array::c_style | py::array::forcecast> grid_x,
-    py::array_t<float, py::array::c_style | py::array::forcecast> grid_y,
-    float mesh_size, int n_threads /* -1 -> auto */) {
+//   1D (n_plants) float64 array with per-plant belowground resource factor ∈ [0, 1]
+py::array_t<double> compute_belowground_resources(
+    py::array_t<double, py::array::c_style | py::array::forcecast> xe,
+    py::array_t<double, py::array::c_style | py::array::forcecast> ye,
+    py::array_t<double, py::array::c_style | py::array::forcecast> r_root,
+    py::array_t<double, py::array::c_style | py::array::forcecast> grid_x,
+    py::array_t<double, py::array::c_style | py::array::forcecast> grid_y,
+    double mesh_size, int n_threads /* -1 -> auto */) {
 
     // Basic input validation & grid bookkeeping
     const int n_plants = (int)xe.size();
@@ -73,41 +74,37 @@ py::array_t<float> compute_belowground_resources(
 #endif
 
     // Tolerance for checking whether a plant covers a grid cell (e^-20)
-    const float allowed_error = std::exp(-20.0f);
+    const double allowed_error = std::exp(-20.0);
 
     // Raw pointers for tight loops
-    const float* px = xe.data();
-    const float* py_ = ye.data();
-    const float* pr = r_root.data();
-    const float* pgx = grid_x.data();
-    const float* pgy = grid_y.data();
+    const double* px = xe.data();
+    const double* py_ = ye.data();
+    const double* pr = r_root.data();
+    const double* pgx = grid_x.data();
+    const double* pgy = grid_y.data();
 
     // Working buffers
     // plant_counts : per-plant number of grid cells within its root zone
     // plant_wins   : per-plant sum of 1/n for each cell it occupies
-    std::vector<float> plant_counts(n_plants, 0.0f);
-    std::vector<float> plant_wins(n_plants, 0.0f);
+    std::vector<double> plant_counts(n_plants, 0.0);
+    std::vector<double> plant_wins(n_plants, 0.0);
 
     // Step 1: Count how many plants occupy each grid cell
     std::vector<int> cell_plant_count(grid_size, 0);
 
-    // For each plant, mark which cells it occupies
-    // We need a 2D structure: for each cell, list of plants that occupy it
-    // But for efficiency, we'll do two passes
-
     // First pass: count plants per cell and plant_counts
     for (int i = 0; i < n_plants; ++i) {
-        float x = px[i], y = py_[i], r = pr[i];
-        const float r_with_tol = r + allowed_error;
+        double x = px[i], y = py_[i], r = pr[i];
+        const double r_with_tol = r + allowed_error;
         int local_count = 0;
 
 #ifdef _OPENMP
         #pragma omp parallel for schedule(static) reduction(+:local_count)
 #endif
         for (int idx = 0; idx < grid_size; ++idx) {
-            float dx = pgx[idx] - x;
-            float dy = pgy[idx] - y;
-            float dist = std::sqrt(dx * dx + dy * dy);
+            double dx = pgx[idx] - x;
+            double dy = pgy[idx] - y;
+            double dist = std::sqrt(dx * dx + dy * dy);
             if (r_with_tol >= dist) {
                 local_count += 1;
 #ifdef _OPENMP
@@ -116,26 +113,26 @@ py::array_t<float> compute_belowground_resources(
                 cell_plant_count[idx] += 1;
             }
         }
-        plant_counts[i] = (float)local_count;
+        plant_counts[i] = (double)local_count;
     }
 
     // Second pass: for each plant, accumulate wins (1/n for each occupied cell)
     for (int i = 0; i < n_plants; ++i) {
-        float x = px[i], y = py_[i], r = pr[i];
-        const float r_with_tol = r + allowed_error;
-        float local_wins = 0.0f;
+        double x = px[i], y = py_[i], r = pr[i];
+        const double r_with_tol = r + allowed_error;
+        double local_wins = 0.0;
 
 #ifdef _OPENMP
         #pragma omp parallel for schedule(static) reduction(+:local_wins)
 #endif
         for (int idx = 0; idx < grid_size; ++idx) {
-            float dx = pgx[idx] - x;
-            float dy = pgy[idx] - y;
-            float dist = std::sqrt(dx * dx + dy * dy);
+            double dx = pgx[idx] - x;
+            double dy = pgy[idx] - y;
+            double dist = std::sqrt(dx * dx + dy * dy);
             if (r_with_tol >= dist) {
                 int n_sharing = cell_plant_count[idx];
                 if (n_sharing > 0) {
-                    local_wins += 1.0f / (float)n_sharing;
+                    local_wins += 1.0 / (double)n_sharing;
                 }
             }
         }
@@ -143,11 +140,11 @@ py::array_t<float> compute_belowground_resources(
     }
 
     // Normalize to get per-plant resource factor; NaN guard
-    py::array_t<float> out(n_plants);
+    py::array_t<double> out(n_plants);
     auto o = out.mutable_unchecked<1>();
     for (int i = 0; i < n_plants; ++i) {
-        float denom = plant_counts[i];
-        o(i) = (denom > 0.0f) ? (plant_wins[i] / denom) : std::numeric_limits<float>::quiet_NaN();
+        double denom = plant_counts[i];
+        o(i) = (denom > 0.0) ? (plant_wins[i] / denom) : std::numeric_limits<double>::quiet_NaN();
         if (o(i) != o(i)) // NaN check
             throw std::runtime_error(
                 "NaN detected in belowground_resources for plants at indices: [" +

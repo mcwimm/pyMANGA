@@ -120,18 +120,18 @@ class SymmetricZOI(ResourceModel):
         """
         gx, gy = self._requireGrid()
 
-        xe = np.ascontiguousarray(np.asarray(self.xe, dtype=np.float32))
-        ye = np.ascontiguousarray(np.asarray(self.ye, dtype=np.float32))
-        r_root = np.ascontiguousarray(np.asarray(self.r_root, dtype=np.float32))
-        grid_x = np.ascontiguousarray(gx.astype(np.float32, copy=False))
-        grid_y = np.ascontiguousarray(gy.astype(np.float32, copy=False))
+        xe = np.ascontiguousarray(np.asarray(self.xe, dtype=np.float64))
+        ye = np.ascontiguousarray(np.asarray(self.ye, dtype=np.float64))
+        r_root = np.ascontiguousarray(np.asarray(self.r_root, dtype=np.float64))
+        grid_x = np.ascontiguousarray(gx.astype(np.float64, copy=False))
+        grid_y = np.ascontiguousarray(gy.astype(np.float64, copy=False))
 
         out = symzoi.compute_belowground_resources(
             xe, ye, r_root,
             grid_x, grid_y,
             float(self.mesh_size)
         )
-        self.belowground_resources = np.asarray(out, dtype=np.float32)
+        self.belowground_resources = np.asarray(out, dtype=np.float64)
 
     def find_nearest(self, array, value):
         """
