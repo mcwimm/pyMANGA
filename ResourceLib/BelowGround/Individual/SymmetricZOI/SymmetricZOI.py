@@ -151,7 +151,8 @@ class SymmetricZOI(ResourceModel):
         tags = {
             "prj_file": args,
             "required": ["type", "domain", "x_1", "x_2", "y_1", "y_2", "x_resolution", "y_resolution"],
-            "optional": ["allow_interpolation", "backend_type"]
+            "optional": ["allow_interpolation", "backend_type"],
+            "case_insensitive": ["backend_type"]
         }
         super().getInputParameters(**tags)
         self._x_1 = self.x_1
@@ -164,28 +165,19 @@ class SymmetricZOI(ResourceModel):
         self.allow_interpolation = super().makeBoolFromArg("allow_interpolation")
 
         # for backend_type, only accept 'cpp' or 'python'; others/omitted => AUTO
-        self._use_choice = None
-        try:
-            raw = args.find("backend_type")
-            if raw is not None and raw.text is not None:
-                s = raw.text.strip().lower()
-                if s == "cpp":
-                    self._use_choice = "cpp"
-                elif s == "python":
-                    self._use_choice = "python"
-        except Exception:
-            pass
+        if not hasattr(self, "backend_type"):
+            self.backend_type = "cpp"
 
     def _selectBackend(self):
         have_cpp = _SYMZOI_OK
-        if self._use_choice == "cpp":
+        if self.backend_type == "cpp":
             if have_cpp:
                 self._backend = "cpp"
                 print("[SymmetricZOI] Backend = cpp")
             else:
                 self._backend = "python"
                 print("[SymmetricZOI] WARNING: <backend_type>cpp</backend_type> set, but C++ core not found. Falling back to python.")
-        elif self._use_choice == "python":
+        elif self.backend_type == "python":
             self._backend = "python"
             print("[SymmetricZOI] Backend = python")
         else:
