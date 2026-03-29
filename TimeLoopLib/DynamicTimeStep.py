@@ -16,6 +16,7 @@ class DynamicTimeStep:
         Args:
             project: project object
         """
+        self.project = project
         # Initialize concepts
         self.aboveground_resource_concept = project.getAbovegroundResourceConcept()
         self.belowground_resource_concept = project.getBelowgroundResourceConcept()
@@ -24,6 +25,7 @@ class DynamicTimeStep:
         self.visualization_concept.update(self.population_concept.getPlantGroups(), "Begin")
         ## Output configuration
         self.model_output_concept = project.getModelOutputConcept()
+        self.disturbance_concept = project.getDisturbanceConcept()
 
         # Arrays to store interim model results
         self.aboveground_resources = []
@@ -114,6 +116,28 @@ class DynamicTimeStep:
 
             # Add number of recruited plants to counter
             number_of_plants += plant_group.getNumberOfPlants()
+
+        # Apply disturbance after growth/mortality
+        if self.disturbance_concept is not None:
+            all_plants = []
+            for _, plant_group in plant_groups.items():
+                all_plants.extend(plant_group.getPlants())
+
+            if all_plants:
+                self.disturbance_concept.apply(
+                    t_ini=t_start, t_end=t_end, plants=all_plants)
+
+                # Remove plants killed by disturbance
+                total_after_disturb = 0
+                for _, plant_group in plant_groups.items():
+                    kill_indices_2 = []
+                    for i, plant in enumerate(plant_group.getPlants()):
+                        if not plant.getSurvival():
+                            kill_indices_2.append(i)
+                    if kill_indices_2:
+                        plant_group.removePlantsAtIndices(kill_indices_2)
+                    total_after_disturb += plant_group.getNumberOfPlants()
+                number_of_plants = total_after_disturb
 
         # Stop MANGA execution if no plants exist or were recruited
         if number_of_plants == 0:
