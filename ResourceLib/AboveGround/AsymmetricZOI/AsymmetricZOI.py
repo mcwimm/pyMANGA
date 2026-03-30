@@ -181,6 +181,7 @@ class AsymmetricZOI(ResourceModel):
     def addPlant(self, plant):
         x, y = plant.getPosition()
         geometry = plant.getGeometry()
+        # ToDo: resolve when all geometries are renamed
         try:
             r_ag = geometry["r_crown"]
             h_stem = geometry["h_stem"]

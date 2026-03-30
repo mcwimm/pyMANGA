@@ -2,7 +2,7 @@
 
 ## Overview
 
-Several resource competition modules in pyMANGA offer optional C++ backends built with [pybind11](https://github.com/pybind/pybind11). These compiled extensions accelerate the grid-based Zone-of-Influence (ZOI) calculations using OpenMP parallelism, which can significantly reduce runtime for large populations or fine spatial resolutions.
+Several resource competition modules in pyMANGA offer optional C++ backends built with [pybind11](https://github.com/pybind/pybind11). These compiled extensions accelerate grid-based resource competition calculations using OpenMP parallelism, which can significantly reduce runtime for large populations or fine spatial resolutions.
 
 The C++ backends are **fully optional**. If the compiled extension is not found, pyMANGA automatically falls back to the pure-Python implementation with identical results.
 
