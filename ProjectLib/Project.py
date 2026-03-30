@@ -3,7 +3,7 @@
 from VisualizationLib import Visualization
 from PopulationLib.PopManager.Population import Population
 from TimeLoopLib import DynamicTimeLoop
-from DisturbanceLib.DisturbanceModel import DisturbanceModel
+from DisturbanceLib.Disturbance import Disturbance
 import numpy as np
 import datetime
 import importlib
@@ -176,7 +176,7 @@ class MangaProject:
             self.disturbance_concept = None
             print("Disturbance: None.")
             return
-        self.disturbance_concept = DisturbanceModel(arg, project=self)
+        self.disturbance_concept = Disturbance(arg, project=self)
 
     def getDisturbanceConcept(self):
         """

@@ -12,11 +12,12 @@ radius_max). All trees inside gaps are removed (mortality_frac = 1.0).
 """
 import math
 import numpy as np
+from DisturbanceLib.DisturbanceModel import DisturbanceModel
 
 SECONDS_PER_YEAR = 3600.0 * 24.0 * 365.25
 
 
-class Lightning:
+class Lightning(DisturbanceModel):
     """
     Lightning disturbance concept.
     """
@@ -27,25 +28,43 @@ class Lightning:
             args (lxml.etree._Element): <Lightning> section from project file
             project: MangaProject object (optional)
         """
-        self.verbose = (
-            args.findtext("verbose", "False").strip().lower()
-            in ("true", "1", "yes", "y"))
+        tags = {
+            "prj_file": args,
+            "optional": ["n_patches", "radius_min", "radius_max",
+                         "mortality_frac", "x_1", "x_2", "y_1", "y_2",
+                         "verbose"]
+        }
+        super().getInputParameters(**tags)
 
-        # Gap configuration (Vogt 2014: 3 gaps, r ~ U(6, 12) m)
-        self.n_patches = int(args.findtext("n_patches", "3"))
-        self.radius_min = max(0.0, float(args.findtext("radius_min", "6.0")))
-        self.radius_max = float(args.findtext("radius_max", "12.0"))
+        # Set defaults for missing optional parameters
+        if not hasattr(self, "n_patches"):
+            self.n_patches = 3
+        else:
+            self.n_patches = int(self.n_patches)
+        if not hasattr(self, "radius_min"):
+            self.radius_min = 6.0
+        self.radius_min = max(0.0, self.radius_min)
+        if not hasattr(self, "radius_max"):
+            self.radius_max = 12.0
         if self.radius_max < self.radius_min:
             self.radius_max = self.radius_min
+        if not hasattr(self, "mortality_frac"):
+            self.mortality_frac = 1.0
+        self.mortality_frac = max(0.0, min(1.0, self.mortality_frac))
+        if not hasattr(self, "verbose"):
+            self.verbose = False
+        else:
+            self.verbose = str(self.verbose).strip().lower() in ("true", "1", "yes", "y")
 
-        # Mortality inside gaps (Vogt 2014: 100%)
-        self.mortality_frac = max(0.0, min(1.0, float(args.findtext("mortality_frac", "1.0"))))
-
-        # Domain bounds for random gap placement
-        self._x_1 = self._readFloat(args, "x_1", None)
-        self._x_2 = self._readFloat(args, "x_2", None)
-        self._y_1 = self._readFloat(args, "y_1", None)
-        self._y_2 = self._readFloat(args, "y_2", None)
+        # Domain bounds (optional)
+        if not hasattr(self, "x_1"):
+            self.x_1 = None
+        if not hasattr(self, "x_2"):
+            self.x_2 = None
+        if not hasattr(self, "y_1"):
+            self.y_1 = None
+        if not hasattr(self, "y_2"):
+            self.y_2 = None
 
         self._last_year = -1
 
@@ -54,10 +73,6 @@ class Lightning:
                   "radius_max={:.2f}, mortality_frac={:.3f}".format(
                       self.n_patches, self.radius_min,
                       self.radius_max, self.mortality_frac))
-
-    def getConceptName(self):
-        """Return name of disturbance concept."""
-        return type(self).__name__
 
     def apply(self, t_ini, t_end, plants):
         """
@@ -77,7 +92,7 @@ class Lightning:
         self._last_year = current_year
 
         if self.verbose:
-            print("[LIGHTNING] year={}, event=YES, plants={}".format(
+            print("[LIGHTNING] year={}, event=YES, total_plants={}".format(
                 current_year, len(plants)))
 
         self._applyPatchMortality(plants)
@@ -90,22 +105,20 @@ class Lightning:
         """
         x_1, x_2, y_1, y_2 = self._getDomain(plants)
         if x_1 >= x_2 or y_1 >= y_2:
+            print("WARNING: Lightning disturbance skipped due to invalid domain bounds.")
             return
 
         if self.n_patches <= 0:
             return
 
-        # Random gap centers within domain
         cx = np.random.uniform(x_1, x_2, size=self.n_patches)
         cy = np.random.uniform(y_1, y_2, size=self.n_patches)
 
-        # Random radii ~ U(radius_min, radius_max)
         if self.radius_min == self.radius_max:
             radii = np.full(self.n_patches, self.radius_max)
         else:
             radii = np.random.uniform(self.radius_min, self.radius_max, size=self.n_patches)
 
-        # Find alive plants inside any gap
         alive = []
         for plant in plants:
             if not plant.getSurvival():
@@ -131,12 +144,12 @@ class Lightning:
         if not candidates:
             return
 
-        # Kill plants inside gaps
         killed = 0
         p = self.mortality_frac
         for plant in candidates:
             if p >= 1.0 or np.random.random() < p:
                 plant.setSurvival(0)
+                plant.getGrowthConceptInformation()["mortality_cause"] = "Lightning"
                 killed += 1
 
         if self.verbose:
@@ -148,17 +161,11 @@ class Lightning:
         Return domain bounds (x_1, x_2, y_1, y_2).
         Uses XML values if provided, otherwise derives from plant positions.
         """
-        if (self._x_1 is not None and self._x_2 is not None and
-                self._y_1 is not None and self._y_2 is not None):
-            return self._x_1, self._x_2, self._y_1, self._y_2
+        if (self.x_1 is not None and self.x_2 is not None and
+                self.y_1 is not None and self.y_2 is not None):
+            return self.x_1, self.x_2, self.y_1, self.y_2
         xs = [float(p.x) for p in plants if hasattr(p, "x")]
         ys = [float(p.y) for p in plants if hasattr(p, "y")]
         if not xs or not ys:
             return 0, 0, 0, 0
         return min(xs), max(xs), min(ys), max(ys)
-
-    def _readFloat(self, args, tag, default):
-        text = args.findtext(tag, None)
-        if text is None:
-            return default
-        return float(text.strip())

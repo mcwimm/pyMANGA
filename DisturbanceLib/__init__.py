@@ -1,3 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-from .DisturbanceModel import DisturbanceModel
+"""
+.. include:: ./Disturbance.md
+"""
+from .Disturbance import Disturbance
