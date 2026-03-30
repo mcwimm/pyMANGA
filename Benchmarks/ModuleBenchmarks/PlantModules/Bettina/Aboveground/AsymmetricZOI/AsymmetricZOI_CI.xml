@@ -3,6 +3,8 @@
     <resources>
         <aboveground>
             <type> AsymmetricZOI </type>
+            <backend_type> python </backend_type>
+            <!-- or <backend_type> cpp </backend_type>-->
             <domain>
                 <x_1> 0 </x_1>
                 <y_1> 0 </y_1>

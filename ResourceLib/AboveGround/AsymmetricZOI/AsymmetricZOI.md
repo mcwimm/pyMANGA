@@ -8,12 +8,17 @@ For example, in `pyMANGA.PlantModelLib.Bettina`, this is the canopy of a tree wi
 This concepts assumes that a plant without neighbors gets 100% of the available light.
 There is no temporal variation in light availability.
 
+
+# C++ Backend
+
+This module supports an optional C++ backend for accelerated computation. See `pyMANGA.ResourceLib` for compilation instructions and configuration details.
+
 # Usage
 
 ```xml
-
 <aboveground>
     <type>AsymmetricZOI</type>
+    <backend_type>cpp</backend_type>
     <domain>
         <x_1>0</x_1>
         <y_1>0</y_1>
@@ -28,6 +33,7 @@ There is no temporal variation in light availability.
 # Attributes
 
 - ``type`` (string): "AsymmetricZOI" (no other values accepted)
+- ``backend_type`` (string): (optional, case-insensitive) "cpp" for C++ accelerated backend, "python" for pure Python. If omitted, auto-selects C++ when available, otherwise falls back to Python.
 - ``domain`` (nesting-tag): coordinates to define the model domain (as mesh)
     - ``x_1`` (float): x-coordinate of left bottom border of grid
     - ``x_2`` (float): x-coordinate of right bottom border of grid
@@ -123,7 +129,7 @@ ag_factor = wins \ crown_areas
 
 # Author(s)
 
-Jasper Bathmann, Ronny Peters, Marie-Christin Wimmler
+Jasper Bathmann, Ronny Peters, Marie-Christin Wimmler, Guanzhen Liu
 
 # See Also
 
@@ -135,7 +141,7 @@ Jasper Bathmann, Ronny Peters, Marie-Christin Wimmler
 
 - Define the grid on which to calculate above-ground resource availability.
 - The total size is 20x20 m, and a cell is 0.25 x 0.25 m (20 m / 80 cells = 0.25 m/cell).
-- Since interpolation is allowed, the canopy can be within a cell without "touching" a node, i.e. with a radius less than 0.177 m. 
+- Since interpolation is allowed, the canopy can be within a cell without "touching" a node, i.e. with a radius less than 0.177 m.
 
 ```xml
 
