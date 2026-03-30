@@ -91,17 +91,14 @@ class Lightning(DisturbanceModel):
             return
         self._last_year = current_year
 
-        if self.verbose:
-            print("[LIGHTNING] year={}, event=YES, total_plants={}".format(
-                current_year, len(plants)))
+        self._applyPatchMortality(plants, current_year)
 
-        self._applyPatchMortality(plants)
-
-    def _applyPatchMortality(self, plants):
+    def _applyPatchMortality(self, plants, current_year=None):
         """
         Apply mortality inside circular gaps at random domain positions.
         Args:
             plants (list): collection of plant objects
+            current_year (int): current simulation year (for verbose output)
         """
         x_1, x_2, y_1, y_2 = self._getDomain(plants)
         if x_1 >= x_2 or y_1 >= y_2:
@@ -153,8 +150,8 @@ class Lightning(DisturbanceModel):
                 killed += 1
 
         if self.verbose:
-            print("[LIGHTNING] patches={}, alive={}, candidates={}, killed={}".format(
-                self.n_patches, len(alive), len(candidates), killed))
+            print("[LIGHTNING] year={}, patches={}, plants={}, candidates={}, killed={}".format(
+                current_year, self.n_patches, len(alive), len(candidates), killed))
 
     def _getDomain(self, plants):
         """
