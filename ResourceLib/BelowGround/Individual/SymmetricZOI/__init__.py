@@ -4,4 +4,3 @@
 .. include:: ./SymmetricZOI.md
 """
 from .SymmetricZOI import SymmetricZOI
-__all__ = ["SymmetricZOI"]

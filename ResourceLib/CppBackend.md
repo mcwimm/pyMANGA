@@ -6,6 +6,8 @@ Several resource competition modules in pyMANGA offer optional C++ backends buil
 
 The C++ backends are **fully optional**. If the compiled extension is not found, pyMANGA automatically falls back to the pure-Python implementation with identical results.
 
+**Please note that any changes to the respective C++ source files require a new compilation.**
+
 ## Supported Modules
 
 | Module                                                    | Extension name | Source file |
