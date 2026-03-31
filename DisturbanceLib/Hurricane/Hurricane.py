@@ -145,7 +145,6 @@ class Hurricane(DisturbanceModel):
             p_kill = self.mort_tall if (math.isfinite(dbh) and dbh >= self.dbh_threshold) else self.mort_small
             if p_kill > 0.0 and np.random.random() < p_kill:
                 plant.setSurvival(0)
-                plant.getGrowthConceptInformation()["mortality_cause"] = "Hurricane"
                 killed += 1
 
         if self.verbose:

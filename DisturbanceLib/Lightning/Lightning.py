@@ -146,7 +146,6 @@ class Lightning(DisturbanceModel):
         for plant in candidates:
             if p >= 1.0 or np.random.random() < p:
                 plant.setSurvival(0)
-                plant.getGrowthConceptInformation()["mortality_cause"] = "Lightning"
                 killed += 1
 
         if self.verbose:
