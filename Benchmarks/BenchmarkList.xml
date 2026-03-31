@@ -175,5 +175,13 @@
                 </Weighted>
             </Recruitment>
         </Population>
+        <DisturbanceLib>
+            <Hurricane>
+                <test> Hurricane_CI.xml </test>
+            </Hurricane>
+            <Lightning>
+                <test> Lightning_CI.xml </test>
+            </Lightning>
+        </DisturbanceLib>
     </ModuleBenchmarks>
 </Benchmarks>

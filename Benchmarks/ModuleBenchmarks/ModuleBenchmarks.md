@@ -52,6 +52,25 @@ Output is written after the first and last time step. The first output is used f
 
 *coming soon*
 
+## Disturbance modules
+
+Disturbance benchmarks test the effect of stochastic disturbance events on plant populations.
+Each benchmark uses a fixed random seed (643879) and a population of 10 individuals with varying `r_stem` values, so that size-dependent mortality logic can be verified.
+
+The simulation time span covers approximately 3 years, which is sufficient to trigger multiple disturbance events while keeping CI execution time under 2 seconds.
+
+Benchmarks are stored in `Benchmarks/ModuleBenchmarks/DisturbanceLib/<concept>/`.
+
+### Hurricane
+
+Tests large-scale hurricane disturbance (Vogt et al. 2014, scenario 3).
+Circular patches are placed randomly within the domain; trees inside patches are killed with DBH-dependent probabilities.
+
+### Lightning
+
+Tests small-scale lightning gap disturbance (Vogt et al. 2014, scenario 2).
+Circular gaps with random radii are created each year; all trees inside gaps are removed.
+
 ## Population modules
 
 *coming soon*

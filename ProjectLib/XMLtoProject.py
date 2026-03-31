@@ -24,6 +24,7 @@ class XMLtoProject(MangaProject):
         self.addNumpyRandomSeed()
         self.addResourceConcept()
         self.addPopulationConcept()
+        self.addDisturbanceConcept()
         self.addPlantTimeLoopConcept()
         self.addVisualizationConcept()
         self.addModelOutputConcept()
@@ -37,7 +38,8 @@ class XMLtoProject(MangaProject):
         self.root = tree.getroot()
         #  The for loop removes ambiguous spaces of the tag arguments
         for tag in self.root.iter():
-            tag.text = tag.text.strip()
+            if tag.text is not None:
+                tag.text = tag.text.strip()
 
     def addNumpyRandomSeed(self):
         """
@@ -75,6 +77,14 @@ class XMLtoProject(MangaProject):
         """
         self.args["population"] = self.findChild(
             self.root, "population")
+
+    def addDisturbanceConcept(self):
+        """
+        Store the values that define the disturbance module.
+        Sets:
+            dictionary
+        """
+        self.args["disturbance"] = self.root.find("disturbance")
 
     def addPlantTimeLoopConcept(self):
         """
