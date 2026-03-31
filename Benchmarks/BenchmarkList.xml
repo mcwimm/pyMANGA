@@ -81,6 +81,9 @@
                     <FON>
                         <test> FON_CI.xml </test>
                     </FON>
+                    <FON_MultiSpecies>
+                        <test> FON_MultiSpecies_CI.xml </test>
+                    </FON_MultiSpecies>
                     <SymmetricZOI>
                         <test> SymmetricZOI_CI.xml </test>
                     </SymmetricZOI>
