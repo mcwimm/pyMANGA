@@ -65,13 +65,11 @@ Benchmarks are stored in `Benchmarks/ModuleBenchmarks/DisturbanceLib/<concept>/`
 
 Tests large-scale hurricane disturbance (Vogt et al. 2014, scenario 3).
 Circular patches are placed randomly within the domain; trees inside patches are killed with DBH-dependent probabilities.
-The benchmark verifies that the expected number of plants survive after disturbance events (10 → 6).
 
 ### Lightning
 
 Tests small-scale lightning gap disturbance (Vogt et al. 2014, scenario 2).
 Circular gaps with random radii are created each year; all trees inside gaps are removed.
-The benchmark verifies that the expected number of plants survive after disturbance events (10 → 7).
 
 ## Population modules
 
