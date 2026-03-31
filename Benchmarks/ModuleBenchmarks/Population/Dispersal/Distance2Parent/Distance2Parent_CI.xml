@@ -36,7 +36,7 @@
             </production>
             <dispersal>
                 <type>Distance2Parent</type>
-                <distribution>normal</distribution>
+                <distribution> normal </distribution>
                 <loc>0</loc>
                 <scale>0.5</scale>
             </dispersal>
