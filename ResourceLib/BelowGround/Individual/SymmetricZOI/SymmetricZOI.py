@@ -3,10 +3,19 @@
 import numpy as np
 from ResourceLib import ResourceModel
 
+# ---- Try to load C++ core (pybind11) ----------------------------------------
+try:
+    from ResourceLib.BelowGround.Individual.SymmetricZOI import symzoi  # compiled C++ core
+    _SYMZOI_OK = True
+except Exception:
+    symzoi = None
+    _SYMZOI_OK = False
+
 
 class SymmetricZOI(ResourceModel):
     """
     SymmetricZOI below-ground resource concept.
+    Fully compatible with the legacy pure-Python workflow; adds an optional C++ backend.
     """
     def __init__(self, args):
         """
@@ -16,6 +25,7 @@ class SymmetricZOI(ResourceModel):
         case = args.find("type").text
         self.getInputParameters(args)
         super().makeGrid()
+        self._selectBackend()
 
     def prepareNextTimeStep(self, t_ini, t_end):
         self.xe = []
@@ -58,6 +68,11 @@ class SymmetricZOI(ResourceModel):
         Sets:
             numpy array with shape(number_of_plants)
         """
+        # Choose backend
+        if getattr(self, "_backend", "python") == "cpp":
+            self._calculateCppCompatible()
+            return
+
         # Numpy array of shape [res_x, res_y, n_plants]
         distance = (((self.my_grid[0][:, :, np.newaxis] -
                       np.array(self.xe)[np.newaxis, np.newaxis, :])**2 +
@@ -96,6 +111,28 @@ class SymmetricZOI(ResourceModel):
             print(f"ERROR: NaN detected in belowground_resources for plants at indices: {nan_indices}")
             exit()
 
+    # C++ accelerated path
+    def _calculateCppCompatible(self):
+        """
+        The C++ acceleration branch packages the data prepared in Python for the pybind11 kernel,
+        which computes the 'below-ground resource factor' for each plant.
+        The results are then written back to self.belowground_resources.
+        """
+        gx, gy = self._requireGrid()
+
+        xe = np.ascontiguousarray(np.asarray(self.xe, dtype=np.float64))
+        ye = np.ascontiguousarray(np.asarray(self.ye, dtype=np.float64))
+        r_root = np.ascontiguousarray(np.asarray(self.r_root, dtype=np.float64))
+        grid_x = np.ascontiguousarray(gx.astype(np.float64, copy=False))
+        grid_y = np.ascontiguousarray(gy.astype(np.float64, copy=False))
+
+        out = symzoi.compute_belowground_resources(
+            xe, ye, r_root,
+            grid_x, grid_y,
+            float(self.mesh_size)
+        )
+        self.belowground_resources = np.asarray(out, dtype=np.float64)
+
     def find_nearest(self, array, value):
         """
         Get the nearest value in a list
@@ -114,7 +151,8 @@ class SymmetricZOI(ResourceModel):
         tags = {
             "prj_file": args,
             "required": ["type", "domain", "x_1", "x_2", "y_1", "y_2", "x_resolution", "y_resolution"],
-            "optional": ["allow_interpolation"]
+            "optional": ["allow_interpolation", "backend_type"],
+            "case_insensitive": ["backend_type"]
         }
         super().getInputParameters(**tags)
         self._x_1 = self.x_1
@@ -126,3 +164,31 @@ class SymmetricZOI(ResourceModel):
 
         self.allow_interpolation = super().makeBoolFromArg("allow_interpolation")
 
+        # for backend_type, only accept 'cpp' or 'python'; others/omitted => AUTO
+        if not hasattr(self, "backend_type"):
+            self.backend_type = "cpp"
+
+    def _selectBackend(self):
+        have_cpp = _SYMZOI_OK
+        if self.backend_type == "cpp":
+            if have_cpp:
+                self._backend = "cpp"
+                print("[SymmetricZOI] Backend = cpp")
+            else:
+                self._backend = "python"
+                print("[SymmetricZOI] WARNING: <backend_type>cpp</backend_type> set, but C++ core not found. Falling back to python.")
+        elif self.backend_type == "python":
+            self._backend = "python"
+            print("[SymmetricZOI] Backend = python")
+        else:
+            self._backend = "cpp" if have_cpp else "python"
+            print(f"[SymmetricZOI] Backend = {self._backend} (auto)")
+
+    def _requireGrid(self):
+        """Raise RuntimeError if my_grid is absent or malformed."""
+        if not hasattr(self, "my_grid") or self.my_grid is None or len(self.my_grid) != 2:
+            raise RuntimeError("Grid not initialized. Did super().makeGrid() run?")
+        gx, gy = self.my_grid
+        if gx.ndim != 2 or gy.ndim != 2 or gx.shape != gy.shape:
+            raise RuntimeError("grid_x and grid_y must be 2D arrays with the same shape.")
+        return gx, gy

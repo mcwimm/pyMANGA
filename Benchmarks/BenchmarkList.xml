@@ -35,7 +35,10 @@
                         <test> FON_CI.xml </test>
                     </FON>
                     <SymmetricZOI>
+                        <test> SymmetricZOIcpp_CI.xml </test>
                         <test> SymmetricZOI_CI.xml </test>
+                        <test> SymmetricZOIcpp.xml </test>
+                        <test> SymmetricZOI.xml </test>
                     </SymmetricZOI>
                     <Merge_FixedSalinity_sZOI>
                         <test> Merge_FixedSalinity_sZOI_CI.xml </test>

@@ -37,6 +37,8 @@ There is no temporal variation in resource availability.
     - ``y_resolution`` (float): y-resolution of the grid
 - ``allow_interpolation`` (bool): (optional) If True, the ZOI of a plant can be smaller than a grid cell, and it will be
   assigned to the nearest node. Default: False.
+- ``backend_type`` (string): (optional) "cpp" for C++ accelerated backend, "python" for pure Python.
+  If omitted, auto-selects C++ when available, otherwise falls back to Python.
 
 # Value
 
@@ -90,7 +92,7 @@ r_bg > mesh_size * 0.5**0.5
 - Calculate the distance of plants to each node (``dist``)
 - Get index of nodes that are occupied by the plant (``idx``)	
 - Count the number of nodes occupied by a plant (``plant_counts``) 
-- Calculate the above-ground resource factor (``bg_factor``) 
+- Calculate the below-ground resource factor (``bg_factor``) 
 ````
 bg_factor = plant_wins / plant_counts
 ````
@@ -114,7 +116,7 @@ bg_factor = plant_wins / plant_counts
 
 # Author(s)
 
-Jasper Bathmann, Ronny Peters, Marie-Christin Wimmler
+Jasper Bathmann, Ronny Peters, Marie-Christin Wimmler, Guanzhen Liu
 
 # See Also
 
@@ -162,4 +164,20 @@ Jasper Bathmann, Ronny Peters, Marie-Christin Wimmler
 </belowground>
 ```
 
+- Symmetric ZOI with C++ backend on a 22x22m² mesh.
+- The C++ backend requires compilation (see `CppBackend.md`). If the compiled module is not found, pyMANGA falls back to the pure Python implementation automatically.
+```xml
+<belowground>
+    <type> SymmetricZOI </type>
+    <backend_type> cpp </backend_type>
+    <domain>
+        <x_1> 0 </x_1>
+        <y_1> 0 </y_1>
+        <x_2> 22 </x_2>
+        <y_2> 22 </y_2>
+        <x_resolution> 22 </x_resolution>
+        <y_resolution> 22 </y_resolution>
+    </domain>
+</belowground>
+```
 
