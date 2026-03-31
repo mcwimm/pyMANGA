@@ -1,5 +1,5 @@
 <MangaProject>
-    <random_seed>643879</random_seed>
+    <random_seed> 643879 </random_seed>
     <resources>
         <aboveground>
             <type> Default </type>
@@ -7,9 +7,9 @@
         <belowground>
             <type> NetworkFixedSalinity </type>
             <f_radius> 0.25 </f_radius>
-            <min_x>0</min_x>
-            <max_x>22</max_x>
-            <salinity>0.025 0.035</salinity>
+            <min_x> 0 </min_x>
+            <max_x> 22 </max_x>
+            <salinity> 0.025 0.035 </salinity>
         </belowground>
     </resources>
     <population>
@@ -17,14 +17,14 @@
             <name> Initial </name>
             <species> Avicennia </species>
             <vegetation_model_type> BettinaNetwork </vegetation_model_type>
-            <mortality>NoGrowth</mortality>
+            <mortality> NoGrowth </mortality>
             <f_growth> 0.25 </f_growth>
             <variant> v2 </variant>
             <domain>
                 <x_1> 0 </x_1>
                 <y_1> 0 </y_1>
                 <x_2> 22 </x_2>
-                <y_2> 22</y_2>
+                <y_2> 22 </y_2>
             </domain>
             <initial_population>
                 <type> FromFile </type>
@@ -51,8 +51,8 @@
     <output>
         <type> OneTimestepOneFile </type>
 		<output_times> [2e6, 5e8] </output_times>
-        <allow_previous_output>True</allow_previous_output>
-        <output_dir>Benchmarks/TestOutputs/</output_dir>
+        <allow_previous_output> True </allow_previous_output>
+        <output_dir> Benchmarks/TestOutputs/ </output_dir>
         <geometry_output> r_stem </geometry_output>
         <geometry_output> h_stem </geometry_output>
         <geometry_output> r_crown </geometry_output>

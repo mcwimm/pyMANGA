@@ -1,5 +1,5 @@
 <MangaProject>
-    <random_seed>643879</random_seed>
+    <random_seed> 643879 </random_seed>
     <resources>
         <aboveground>
             <type> Default </type>
@@ -15,7 +15,7 @@
             <vegetation_model_type> Bettina </vegetation_model_type>
             <!-- Extremely high random mortality introduced to reduce the number of trees at the
             end of the simulation and keep the CSV file manageable.-->
-            <mortality>NoGrowth Random</mortality>
+            <mortality> NoGrowth Random </mortality>
             <probability>0.4</probability>
             <domain>
                 <x_1> 0 </x_1>
@@ -24,7 +24,7 @@
                 <y_2> 22 </y_2>
             </domain>
              <initial_population>
-                <type>FromFile</type>
+                <type> FromFile </type>
                 <filename>Benchmarks/ModuleBenchmarks/PlantModules/Bettina/ag_initial_population.csv</filename>
             </initial_population>
             <production>
@@ -51,7 +51,7 @@
     <output>
         <type> OneTimestepOneFile </type>
         <output_times> [2e6, 5e8] </output_times>
-        <allow_previous_output>True</allow_previous_output>
+        <allow_previous_output> True </allow_previous_output>
         <output_dir>Benchmarks/ModuleBenchmarks/Population/Production/SizeDependent/ReferenceFiles/SizeDependent</output_dir>
         <geometry_output> r_stem </geometry_output>
     </output>

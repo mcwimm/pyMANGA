@@ -1,5 +1,5 @@
 <MangaProject>
-    <random_seed>643879</random_seed>
+    <random_seed> 643879 </random_seed>
     <resources>
         <aboveground>
             <type> AsymmetricZOI </type>
@@ -14,8 +14,8 @@
          </aboveground>
         <belowground>
             <type> FixedSalinity </type>
-            <min_x>0</min_x>
-            <max_x>22</max_x>
+            <min_x> 0 </min_x>
+            <max_x> 22 </max_x>
             <salinity>0.035 0.035</salinity>
         </belowground>
     </resources>
@@ -24,7 +24,7 @@
             <name> Initial </name>
             <species> Avicennia </species>
             <vegetation_model_type> Bettina </vegetation_model_type>
-            <mortality>NoGrowth</mortality>
+            <mortality> NoGrowth </mortality>
             <distribution>
                 <type> FromFile </type>
                 <domain>
@@ -50,7 +50,7 @@
     <output>
         <type> OneTimestepOneFile </type>
 		<output_times> [2e6, 5e8] </output_times>
-        <allow_previous_output>True</allow_previous_output>
+        <allow_previous_output> True </allow_previous_output>
         <output_dir>Benchmarks/ModuleBenchmarks/Population/v310/Fromfile_v310/ReferenceFiles/Fromfile_v310</output_dir>
         <geometry_output> r_stem </geometry_output>
         <geometry_output> h_stem </geometry_output>
