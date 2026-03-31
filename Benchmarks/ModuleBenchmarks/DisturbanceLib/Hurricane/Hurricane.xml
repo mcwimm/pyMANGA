@@ -1,0 +1,68 @@
+<MangaProject>
+    <random_seed>643879</random_seed>
+    <resources>
+        <aboveground>
+            <type> Default </type>
+        </aboveground>
+        <belowground>
+            <type> Default </type>
+        </belowground>
+    </resources>
+    <population>
+        <group>
+            <name> Initial </name>
+            <species> Avicennia </species>
+            <vegetation_model_type> Bettina </vegetation_model_type>
+            <mortality>NoGrowth</mortality>
+            <distribution>
+                <type> FromFile </type>
+                <domain>
+                    <x_1> 0 </x_1>
+                    <y_1> 0 </y_1>
+                    <x_2> 22 </x_2>
+                    <y_2> 22 </y_2>
+                </domain>
+                <n_recruitment_per_step> 0 </n_recruitment_per_step>
+                <filename> Benchmarks/ModuleBenchmarks/DisturbanceLib/initial_population.csv </filename>
+            </distribution>
+        </group>
+    </population>
+    <disturbance>
+        <domain>
+            <x_1> 0 </x_1>
+            <x_2> 22 </x_2>
+            <y_1> 0 </y_1>
+            <y_2> 22 </y_2>
+        </domain>
+        <Hurricane>
+            <frequency> 1.0 </frequency>
+            <n_patches> 1 </n_patches>
+            <patch_radius> 5.0 </patch_radius>
+            <dbh_threshold> 0.15 </dbh_threshold>
+            <mort_tall> 0.75 </mort_tall>
+            <mort_small> 0.50 </mort_small>
+        </Hurricane>
+    </disturbance>
+    <time_loop>
+        <type> Simple </type>
+        <t_start> 0 </t_start>
+        <t_end> 500e6 </t_end>
+        <delta_t> 1e6 </delta_t>
+    </time_loop>
+    <visualization>
+        <type> NONE </type>
+    </visualization>
+    <output>
+        <type> OneTimestepOneFile </type>
+        <output_times> [100e6, 500e6] </output_times>
+        <allow_previous_output>True</allow_previous_output>
+        <output_dir>Benchmarks/TestOutputs/</output_dir>
+        <geometry_output> r_stem </geometry_output>
+        <geometry_output> h_stem </geometry_output>
+        <geometry_output> r_crown </geometry_output>
+        <geometry_output> r_root </geometry_output>
+        <growth_output> growth </growth_output>
+        <growth_output> ag_resources </growth_output>
+        <growth_output> bg_resources </growth_output>
+    </output>
+</MangaProject>
