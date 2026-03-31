@@ -28,6 +28,9 @@ class FON(ResourceModel):
         self._xe = []
         self._ye = []
         self._r_stem = []
+        self._aa = []
+        self._bb = []
+        self._fmin = []
         self._t_ini = t_ini
         self._t_end = t_end
         self._fon_height = np.zeros_like(self.my_grid[0])
@@ -39,9 +42,9 @@ class FON(ResourceModel):
         self._xe.append(x)
         self._ye.append(y)
         self._r_stem.append(geometry["r_stem"])
-        self.aa = parameter["aa"]
-        self.bb = parameter["bb"]
-        self.fmin = parameter["fmin"]
+        self._aa.append(parameter["aa"])
+        self._bb.append(parameter["bb"])
+        self._fmin.append(parameter["fmin"])
 
     def calculateBelowgroundResources(self):
         """
@@ -50,6 +53,9 @@ class FON(ResourceModel):
             numpy array with shape(number_of_plants)
         """
         self._r_stem = np.array(self._r_stem)
+        self._aa = np.array(self._aa)
+        self._bb = np.array(self._bb)
+        self._fmin = np.array(self._fmin)
         distance = (((self.my_grid[0][:, :, np.newaxis] -
                       np.array(self._xe)[np.newaxis, np.newaxis, :])**2 +
                      (self.my_grid[1][:, :, np.newaxis] -
@@ -62,10 +68,10 @@ class FON(ResourceModel):
         # Count all nodes, which are occupied by plants
         # returns array of shape (nplants)
         fon_areas = fon_areas.sum(axis=(0, 1))
-        fon_heigths = my_fon.sum(axis=-1)
+        fon_heights = my_fon.sum(axis=-1)
 
-        fon_impacts = fon_heigths[:, :, np.newaxis] - my_fon
-        fon_impacts[np.where(my_fon < self.fmin)] = 0
+        fon_impacts = fon_heights[:, :, np.newaxis] - my_fon
+        fon_impacts[np.where(my_fon < self._fmin)] = 0
         fon_impacts = fon_impacts.sum(axis=(0, 1))
 
         # tree-to-tree competition, eq. (7) Berger & Hildenbrandt (2000)
@@ -84,12 +90,12 @@ class FON(ResourceModel):
             numpy array with shape(x_grid_points, y_grid_points, number_of_plants)
         """
         # fon radius, eq. (1) Berger et al. 2002
-        fon_radius = self.aa * self._r_stem**self.bb
-        cc = -np.log(self.fmin) / (fon_radius - self._r_stem)
+        fon_radius = self._aa * self._r_stem**self._bb
+        cc = -np.log(self._fmin) / (fon_radius - self._r_stem)
         height = np.exp(-cc[np.newaxis, np.newaxis, :] *
                         (distance - self._r_stem[np.newaxis, np.newaxis, :]))
         height[height > 1] = 1
-        height[height < self.fmin] = 0
+        height[height < self._fmin] = 0
         return height
 
     def getInputParameters(self, args, required_tags=None):
