@@ -128,6 +128,8 @@ class PlantGroup:
         else:
             self.recruitment = None
 
+        self.setNumberOfSeeds()
+
     def setNumberOfSeeds(self):
         """
         Set the number of new seeds or seedlings produced.
@@ -227,7 +229,8 @@ class PlantGroup:
         if self.use_v310:
             return self.dispersal_v310.n_recruitment_per_step
         else:
-            return self.number_of_seeds
+            if self.number_of_seeds:
+                return sum(self.number_of_seeds.values())
 
     def recruitPlants_v310(self, initial_group=False):
         """

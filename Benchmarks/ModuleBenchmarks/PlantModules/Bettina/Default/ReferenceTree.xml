@@ -1,5 +1,5 @@
 <MangaProject>
-    <random_seed>643879</random_seed>
+    <random_seed> 643879 </random_seed>
     <resources>
         <aboveground>
             <type> Default </type>
@@ -38,7 +38,7 @@
     </visualization>
     <output>
         <type> OneFile </type>
-		<allow_previous_output>True</allow_previous_output>
+		<allow_previous_output> True </allow_previous_output>
         <output_dir>Benchmarks/h_008/</output_dir>
         <geometry_output> r_stem </geometry_output>
         <geometry_output> h_stem </geometry_output>

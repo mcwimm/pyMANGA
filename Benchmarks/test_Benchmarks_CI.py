@@ -57,12 +57,12 @@ class AutomatedBenchmarkTests(unittest.TestCase):
         for i in range(len(self.setup_list)):
             setup = self.setup_list[i]
             with self.subTest(i=setup):
-                logging.info("Testing project" + setup)
+                print("\n################################\nTesting project", setup, "\n################################\n")
                 self.clean_output_dir(setup)
                 self.model_run(setup)
                 self.compare_to_reference(setup)
                 self.clean_output_dir(setup)
-                logging.info("Success!")
+                print("\nSuccess!\n")
 
     ## Runtime check
     #  @param project - pyMANGA project file for the runtime check
@@ -97,7 +97,7 @@ class AutomatedBenchmarkTests(unittest.TestCase):
 
                     self.assertTrue(
                         test, str(df1.compare(df2)) +
-                        "Simulation and reference differ for " +
+                        "\nSimulation and reference differ for " +
                         files_result[y])
 
     ## Helper to find output directory for cleanup functions
