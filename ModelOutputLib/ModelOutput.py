@@ -66,13 +66,12 @@ class ModelOutput:
     def all_none(self, l):
         """
         Check if all items of a list are None
-        Credits: @Dog eat cat world https://stackoverflow.com/a/62816203
         Args:
             l (list): list of items
         Returns:
             bool
         """
-        return not any(map(None.__ne__, l))
+        return all(x is None for x in l)
 
     def setOutputTime(self):
         """
